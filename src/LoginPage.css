@@ -1,0 +1,172 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', sans-serif;
+}
+
+.page {
+  display: flex;
+  height: 100vh;
+}
+
+/* ── Left Panel ── */
+.left-panel {
+  width: 42%;
+  background: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 40px 48px;
+}
+
+.form-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  max-width: 320px;
+}
+
+.form-container h2 {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #222;
+  margin-bottom: 28px;
+}
+
+.form-container input[type="email"],
+.form-container input[type="text"],
+.form-container input[type="password"] {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1.5px solid #D0D5DD;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  outline: none;
+  margin-bottom: 14px;
+}
+
+.form-container input:focus {
+  border-color: #1976D2;
+}
+
+.password-field {
+  position: relative;
+  margin-bottom: 14px;
+}
+
+.password-field input {
+  width: 100%;
+  padding: 12px 60px 12px 14px;
+  border: 1.5px solid #D0D5DD;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  outline: none;
+  margin-bottom: 0;
+}
+
+.password-field input:focus {
+  border-color: #1976D2;
+}
+
+.password-field button {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #555;
+  cursor: pointer;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.row label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.875rem;
+  color: #444;
+  cursor: pointer;
+}
+
+.row a {
+  font-size: 0.875rem;
+  color: #1976D2;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.login-btn {
+  width: 100%;
+  padding: 13px;
+  background: #1976D2;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.login-btn:hover {
+  background: #1565C0;
+}
+
+.signup-btn {
+  width: 100%;
+  padding: 13px;
+  background: #1976D2;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.signup-btn:hover {
+  background: #1565C0;
+}
+
+.powered-by {
+  font-size: 0.78rem;
+  color: #999;
+}
+
+/* ── Right Panel ── */
+.right-panel {
+  flex: 1;
+  background: linear-gradient(160deg, #1565C0, #1976D2);
+  display: flex;
+  align-items: flex-end;
+}
+
+.banner-text {
+  background: rgba(10, 35, 90, 0.5);
+  padding: 28px 40px;
+  color: white;
+  width: 100%;
+  text-align: center;
+}
+
+.banner-text h3 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.banner-text p {
+  font-size: 0.875rem;
+  color: #C5D8F5;
+  line-height: 1.6;
+}
