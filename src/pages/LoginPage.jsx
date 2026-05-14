@@ -1,7 +1,9 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import '../styles/LoginPage.css'
 
 export default function LoginPage() {
+  const navigate = useNavigate()
   const [showPassword, setShowPassword] = useState(false)
   const [rememberMe, setRememberMe] = useState(false)
   const [email, setEmail] = useState('')
@@ -58,6 +60,11 @@ export default function LoginPage() {
             </div>
 
             <button type="submit" className="login-btn">Login</button>
+
+            <div className="row">
+              <span>Don't have an account?</span>
+              <a href="#" onClick={() => navigate('/')}>Sign Up</a>
+            </div>
           </form>
         </div>
 

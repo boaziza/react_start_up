@@ -69,10 +69,10 @@ export default function SignupPage() {
                     </div>
 
                     <button type="submit" className="signup-btn">Sign Up</button>
-                    <p>
-                        Already have an account
-                        <button onClick={() => navigate("/login")}>Log In</button>
-                    </p>
+                    <div className="row">
+                        <span>Don't have an account?</span>
+                        <a href="#" onClick={() => navigate('/login')}>Log In</a>
+                    </div>
                 </form>
             </div>
 
