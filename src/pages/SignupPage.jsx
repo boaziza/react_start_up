@@ -10,9 +10,24 @@ export default function SignupPage() {
     const [password, setPassword] = useState('')
     const [username, setUsername] = useState('')
 
-    function handleSubmit(e) {
+    async function handleSubmit(e) {
         e.preventDefault()
-        console.log('Sign Up:', { username, email, password})
+
+        const res = await fetch('http://localhost:4000/api/user/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                username,
+                email,
+                password
+            })
+        })
+
+        const data = await res.json()
+
+        console.log('Sign Up:', data)
     }
 
     return (
