@@ -1,6 +1,5 @@
 import { useState } from 'react'
-import SignupPage from './SignupPage'
-import './LoginPage.css'
+import '../styles/LoginPage.css'
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
@@ -56,8 +55,6 @@ export default function LoginPage() {
                 Remember Me
               </label>
               <a href="#">Forgot Password?</a>
-              <SignupPage/>
-              
             </div>
 
             <button type="submit" className="login-btn">Login</button>
