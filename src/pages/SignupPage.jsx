@@ -11,7 +11,6 @@ export default function SignupPage() {
     const [username, setUsername] = useState('')
 
     async function handleSubmit(e) {
-        e.preventDefault()
 
         const res = await fetch('http://localhost:4000/api/user/', {
             method: 'POST',
