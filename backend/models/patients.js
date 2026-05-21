@@ -6,9 +6,36 @@ export async function getAllPatients() {
 }
 
 export async function getPatientById(id) {
-  const { rows } = await pool.query('SELECT * FROM patients WHERE id = $1', [id]);
-  return rows[0];
+    const { rows } = await pool.query(`
+        SELECT
+            patients.*,
+            COALESCE(
+                json_agg(
+                    json_build_object(
+                        'id',             deliveries.id,
+                        'drug_name',      deliveries.drug_name,
+                        'days_supply',    deliveries.days_supply,
+                        'cycle_start',    deliveries.cycle_start,
+                        'cycle_end',      deliveries.cycle_end,
+                        'payment_status', deliveries.payment_status,
+                        'package_code',   deliveries.package_code,
+                        'date',           deliveries.date,
+                        'area',           deliveries.area,
+                        'address',        deliveries.address,
+                        'next_date',      deliveries.next_date
+                    )
+                ) FILTER (WHERE deliveries.id IS NOT NULL),
+                '[]'
+            ) AS deliveries
+        FROM patients
+        LEFT JOIN deliveries ON deliveries.patient_id = patients.id
+        WHERE patients.id = $1
+        GROUP BY patients.id
+    `, [id])
+
+    return rows[0]
 }
+
 
 export async function createPatient({ name, hospital_id, phone_number }) {
 

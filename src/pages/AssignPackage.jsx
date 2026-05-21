@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import '../styles/viewPatient.css'
 
-export default function ViewPatient() {
+export default function AssignPackage() {
     const navigate = useNavigate()
     const { id } = useParams()
     const [activeTab, setActiveTab] = useState('patient')
@@ -11,16 +11,13 @@ export default function ViewPatient() {
     const [form, setForm] = useState({
         hospital_id: '',
         first_name: '',
-        last_name: '',
-        gender: '',
         phone: '',
-        email: '',
-        drug_name: '',
         days_supply: '',
         cycle_start: '',
         cycle_end: '',
-        payment_status: '',
-        package_code: '',
+        date: '',
+        area: '',
+        next_date: '',
     })
     const [loading, setLoading] = useState(true)
 
@@ -37,19 +34,13 @@ export default function ViewPatient() {
             setForm({
             hospital_id: data.hospital_id || '',
             first_name: data.name || '',
-            last_name: data.last_name || '',
-            gender: data.gender || '',
             phone: data.phone_number || '',
-            email: data.email || '',
-            drug_name: data.deliveries[0]?.drug_name || '',
             days_supply: data.deliveries[0]?.days_supply || '',
             cycle_start: data.deliveries[0]?.cycle_start || '',
             cycle_end: data.deliveries[0]?.cycle_end || '',
-            payment_status: data.deliveries[0]?.payment_status ?? false,
-            package_code: data.deliveries[0]?.package_code || '',
             date: data.deliveries[0]?.date || '',
             area: data.deliveries[0]?.area || '',
-            address: data.deliveries[0]?.address || '',
+            next_date: data.deliveries[0]?.next_date || '',
             })
         })
         .catch(error => {
@@ -90,15 +81,9 @@ export default function ViewPatient() {
             <div className="vp-subheader">
                 <div className="vp-breadcrumb">
                     <span className="vp-breadcrumb-link" onClick={() => navigate('/patients')}>Patients</span>
+                    <span className="vp-breadcrumb-link" onClick={() => navigate(`/patients/ViewPatient/${id}`)}> / View Patient</span>
                     <span className="vp-breadcrumb-sep"> / </span>
-                    <span>View Patient</span>
-                </div>
-                <div className="vp-subheader-right">
-                    <p className="vp-delivery-note">
-                        Patient's next delivery date is<br />
-                        <strong>{new Date(form.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}, in {form.days_supply} day(s)</strong>
-                    </p>
-                    <button className="vp-assign-btn" onClick={() => navigate(`/patients/ViewPatient/${id}/assignpackage`)}>Assign Package to Patient</button>
+                    <span>Assign Package</span>
                 </div>
             </div>
 
@@ -107,113 +92,78 @@ export default function ViewPatient() {
 
                 {/* Sidebar */}
                 <div className="vp-sidebar">
-                    <p className="vp-sidebar-label">Patient</p>
-                    <div
-                        className={`vp-sidebar-item ${activeMenu === 'rider' ? 'active' : ''}`}
-                        onClick={() => setActiveMenu('rider')}
-                    >
-                        Rider's Profile
+                    <p className="vp-sidebar-label">Patient's Information</p>
+                    <div className="vp-sidebar-item">
+                        <strong>Hospital ID:</strong> {form.hospital_id}
                     </div>
-                    <div
-                        className={`vp-sidebar-item ${activeMenu === 'history' ? 'active' : ''}`}
-                        onClick={() => setActiveMenu('history')}
-                    >
-                        Delivery History
+                    <div className="vp-sidebar-item">
+                        <strong>First Name:</strong> {form.first_name}
+                    </div>
+                    <div className="vp-sidebar-item">
+                        <strong>Phone:</strong> {form.phone}
+                    </div>
+                    <div className="vp-sidebar-item">
+                        <strong>Area:</strong> {form.area}
+                    </div>
+                    <div className="vp-sidebar-item">
+                        <strong>Next Delivery Date:</strong> {form.next_date}
                     </div>
                 </div>
 
                 {/* Main panel */}
                 <div className="vp-main">
 
-                    {/* Payment status */}
-                    <div className="vp-payment-row">
-                        <span className="vp-payment-label">Payment Status</span>
-                        <span className="vp-badge paid">Paid</span>
-                    </div>
-
                     {/* Tabs */}
                     <div className="vp-tabs">
                         <button
-                            className={`vp-tab ${activeTab === 'patient' ? 'active' : ''}`}
-                            onClick={() => setActiveTab('patient')}
+                            className={`vp-tab ${activeTab === 'drug-cycle' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('drug-cycle')}
                         >
-                            Patient Information
+                            Set Drug Cycle/Length
                         </button>
                         <button
-                            className={`vp-tab ${activeTab === 'delivery' ? 'active' : ''}`}
-                            onClick={() => setActiveTab('delivery')}
+                            className={`vp-tab ${activeTab === 'assign-rider' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('assign-rider')}
                         >
-                            Delivery Information
+                            Assign Dispatch Rider
+                        </button>
+                        <button
+                            className={`vp-tab ${activeTab === 'scan-page' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('scan-page')}
+                        >
+                            Scan Page
                         </button>
                     </div>
 
                     {/* Tab content */}
-                    {activeTab === 'patient' && (
+                    {activeTab === 'drug-cycle' && (
                         <div className="vp-tab-content">
                             <div className="vp-form-header">
                                 <div>
-                                    <h2>Patient's Information</h2>
-                                    <p>Personal information about Patient.</p>
+                                    <h1>{form.first_name} has a drug cycle of {form.days_supply} days.</h1>
                                 </div>
-                                <button className="vp-edit-btn">✎ Edit Patient's Information</button>
                             </div>
 
                             <div className="vp-form">
-                                <div className="vp-field full">
-                                    <label>Hospital ID</label>
-                                    <input
-                                        name="hospital_id"
-                                        value={form.hospital_id}
-                                        onChange={handleChange}
-                                    />
+                                <div className="vp-cycle-option">
+                                    <label className="vp-cycle-label">
+                                        <input type="radio" name="cycle" value="same" defaultChecked />
+                                        Same as initial drug cycle
+                                    </label>
+                                </div>
+                                <div className="vp-cycle-subtext">
+                                    <p>Deliver drug on <strong>{form.date}</strong> &amp; set next delivery date to <strong>{form.next_date}</strong></p>
                                 </div>
 
-                                <div className="vp-field half">
-                                    <label>First Name</label>
-                                    <input
-                                        name="first_name"
-                                        value={form.first_name}
-                                        onChange={handleChange}
-                                    />
-                                </div>
-
-                                <div className="vp-field half">
-                                    <label>Last Name</label>
-                                    <input
-                                        name="last_name"
-                                        value={form.last_name}
-                                        onChange={handleChange}
-                                    />
-                                </div>
-
-                                <div className="vp-field half">
-                                    <label>Gender</label>
-                                    <select name="gender" value={form.gender} onChange={handleChange}>
-                                        <option>Male</option>
-                                        <option>Female</option>
-                                    </select>
-                                </div>
-
-                                <div className="vp-field half">
-                                    <label>Phone Number</label>
-                                    <input
-                                        name="phone"
-                                        value={form.phone}
-                                        onChange={handleChange}
-                                    />
-                                </div>
-
-                                <div className="vp-field full">
-                                    <label>Email Address</label>
-                                    <input
-                                        name="email"
-                                        value={form.email}
-                                        onChange={handleChange}
-                                    />
+                                <div className="vp-cycle-option">
+                                    <label className="vp-cycle-label">
+                                        <input type="radio" name="cycle" value="new" />
+                                        Set new drug cycle
+                                    </label>
                                 </div>
 
                                 <div className="vp-form-footer">
-                                    <button className="vp-save-btn">Save Changes</button>
+                                    <button className="vp-save-btn">Next</button>
                                 </div>
                             </div>
                         </div>

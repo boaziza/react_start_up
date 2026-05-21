@@ -115,6 +115,7 @@ function StatusBadge({ status }) {
 }
 
 function Tables({ search, sortBy, page, setPage, perPage }) {
+    const navigate = useNavigate()
     const [patients, setPatients] = useState([])
 
     useEffect(() => {
@@ -171,7 +172,8 @@ function Tables({ search, sortBy, page, setPage, perPage }) {
                                     <StatusBadge status={patient.status} />
                                 </td>
                                 <td className="px-5 py-4">
-                                    <button className="border border-gray-300 text-gray-500 text-xs px-3 py-1.5 rounded hover:bg-gray-50">
+                                    <button className="border border-gray-300 text-gray-500 text-xs px-3 py-1.5 rounded hover:bg-gray-50" 
+                                        onClick={() => navigate(`/patients/ViewPatient/${patient.id}`)}>
                                         View
                                     </button>
                                 </td>
