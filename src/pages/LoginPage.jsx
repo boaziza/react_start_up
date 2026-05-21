@@ -8,10 +8,26 @@ export default function LoginPage() {
   const [rememberMe, setRememberMe] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
 
   function handleSubmit(e) {
     e.preventDefault()
-    console.log('Login:', { email, password })
+    setError('')
+    setLoading(true)
+    fetch('http://localhost:4000/api/user/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    })
+      .then(res => res.json().then(data => ({ ok: res.ok, data })))
+      .then(({ ok, data }) => {
+        if (!ok) { setError(data.error || 'Login failed'); return }
+        localStorage.setItem('user', JSON.stringify(data.user))
+        navigate('/deliveries')
+      })
+      .catch(() => setError('Could not connect to server'))
+      .finally(() => setLoading(false))
   }
 
   return (
@@ -59,7 +75,10 @@ export default function LoginPage() {
               <a href="#">Forgot Password?</a>
             </div>
 
-            <button type="submit" className="login-btn">Login</button>
+            {error && <p style={{ color: '#ef4444', fontSize: 13, marginBottom: 10 }}>{error}</p>}
+            <button type="submit" className="login-btn" disabled={loading}>
+              {loading ? 'Signing in...' : 'Login'}
+            </button>
 
             <div className="row">
               <span>Don't have an account?</span>

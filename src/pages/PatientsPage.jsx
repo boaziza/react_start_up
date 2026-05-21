@@ -5,6 +5,7 @@ import '../styles/app.css'
 export default function PatientsPage() {
     const navigate = useNavigate()
     const [search, setSearch] = useState('')
+    const user = JSON.parse(localStorage.getItem('user') || '{}')
     const [sortBy, setSortBy] = useState('hospital_id')
     const [page, setPage] = useState(1)
     const perPage = 10
@@ -40,14 +41,11 @@ export default function PatientsPage() {
                 </div>
 
                 {/* User */}
-                <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/login')}>
-                    <div className="w-8 h-8 rounded-full bg-orange-400 flex items-center justify-center text-white text-sm font-semibold">
-                        E
-                    </div>
-                    <span className="text-sm text-gray-700">Emmanuel Adigun</span>
-                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
+
+                <div className="vp-user" onClick={() => { localStorage.removeItem('user'); navigate('/login') }}>
+                    <div className="vp-avatar">{user.username?.[0]?.toUpperCase() || 'U'}</div>
+                    <span>{user.username || 'User'}</span>
+                    <span className="vp-chevron">▾</span>
                 </div>
             </nav>
 

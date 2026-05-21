@@ -6,6 +6,7 @@ import '../styles/app.css'
 export default function AssignPackage() {
     const navigate = useNavigate()
     const { id } = useParams()
+    const user = JSON.parse(localStorage.getItem('user') || '{}')
     const [activeTab, setActiveTab] = useState('drug-cycle')
     const [form, setForm] = useState({
         hospital_id: '',
@@ -103,9 +104,9 @@ export default function AssignPackage() {
                     <a className="vp-nav-link" onClick={() => navigate('/Admin')}>Admin</a>
                 </div>
 
-                <div className="vp-user" onClick={() => navigate('/login')}>
-                    <div className="vp-avatar">E</div>
-                    <span>Emmanuel Adigwe</span>
+                <div className="vp-user" onClick={() => { localStorage.removeItem('user'); navigate('/login') }}>
+                    <div className="vp-avatar">{user.username?.[0]?.toUpperCase() || 'U'}</div>
+                    <span>{user.username || 'User'}</span>
                     <span className="vp-chevron">▾</span>
                 </div>
             </nav>

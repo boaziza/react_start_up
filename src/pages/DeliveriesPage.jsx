@@ -4,7 +4,7 @@ import '../styles/app.css'
 
 export default function DeliveriesPage() {
     const navigate = useNavigate()
-
+    const user = JSON.parse(localStorage.getItem('user') || '{}')
     const [deliveries, setDeliveries] = useState([])
     const [activeFilter, setActiveFilter] = useState('Successful')
     const [sortBy, setSortBy]             = useState('Most Recent')
@@ -44,9 +44,9 @@ export default function DeliveriesPage() {
                     <a className="vp-nav-link" onClick={() => navigate('/admin')}>Admin</a>
                 </div>
 
-                <div className="vp-user">
-                    <div className="vp-avatar">E</div>
-                    <span>Emmanuel Adigwe</span>
+                <div className="vp-user" onClick={() => { localStorage.removeItem('user'); navigate('/login') }}>
+                    <div className="vp-avatar">{user.username?.[0]?.toUpperCase() || 'U'}</div>
+                    <span>{user.username || 'User'}</span>
                     <span className="vp-chevron">&#9662;</span>
                 </div>
             </nav>

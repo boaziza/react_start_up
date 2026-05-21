@@ -20,17 +20,15 @@ router.get('/:id', async (req, res) => {
   res.json(user);
 });
 
-// router.post('/login', async(req,res) =>{
-//     const { email, password } = req.body;
-  
-//     const user = await getUserByEmail(email);
-
-//     if (!user || user.password !== password) {
-//         return res.status(401).json({ error: 'Invalid credentials' });
-//     } else {
-//         res.json(user);
-//     }
-// })
+router.post('/login', async (req, res) => {
+    const { email, password } = req.body;
+    const user = await getUserByEmail(email);
+    if (!user || user.password !== password) {
+        return res.status(401).json({ error: 'Invalid email or password' });
+    }
+    const { password: _pw, ...safeUser } = user;
+    res.json({ user: safeUser });
+})
 
 router.post('/', async (req, res) => {
   const user = await createUser(req.body);
