@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import '../styles/app.css'
 
 export default function PatientsPage() {
     const navigate = useNavigate()
@@ -21,19 +22,19 @@ export default function PatientsPage() {
 
                 {/* Links */}
                 <div className="flex items-center h-full">
-                    <a href="#" className="h-full flex items-center px-4 text-gray-400 text-sm border-b-2 border-transparent hover:text-gray-600">
+                    <a onClick={() => navigate('/overview')} className="h-full flex items-center px-4 text-gray-400 text-sm border-b-2 border-transparent hover:text-gray-600">
                         Overview
                     </a>
-                    <a href="#" className="h-full flex items-center px-4 text-gray-400 text-sm border-b-2 border-transparent hover:text-gray-600">
+                    <a onClick={() => navigate('/deliveries')} className="h-full flex items-center px-4 text-gray-400 text-sm border-b-2 border-transparent hover:text-gray-600">
                         Deliveries
                     </a>
                     <a href="#" className="h-full flex items-center px-4 text-blue-600 text-sm font-semibold border-b-2 border-blue-600">
                         Patients
                     </a>
-                    <a href="#" className="h-full flex items-center px-4 text-gray-400 text-sm border-b-2 border-transparent hover:text-gray-600">
+                    <a onClick={() => navigate('/DispatchRiders')} className="h-full flex items-center px-4 text-gray-400 text-sm border-b-2 border-transparent hover:text-gray-600">
                         Dispatch Riders
                     </a>
-                    <a href="#" className="h-full flex items-center px-4 text-gray-400 text-sm border-b-2 border-transparent hover:text-gray-600">
+                    <a onClick={() => navigate('/admin')} className="h-full flex items-center px-4 text-gray-400 text-sm border-b-2 border-transparent hover:text-gray-600">
                         Admin
                     </a>
                 </div>

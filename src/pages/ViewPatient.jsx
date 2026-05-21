@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import '../styles/viewPatient.css'
+import '../styles/app.css'
 
 export default function ViewPatient() {
     const navigate = useNavigate()
@@ -112,7 +112,7 @@ export default function ViewPatient() {
                         className={`vp-sidebar-item ${activeMenu === 'rider' ? 'active' : ''}`}
                         onClick={() => setActiveMenu('rider')}
                     >
-                        Rider's Profile
+                        Patient's Profile
                     </div>
                     <div
                         className={`vp-sidebar-item ${activeMenu === 'history' ? 'active' : ''}`}

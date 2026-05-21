@@ -1,4 +1,2 @@
 node_modules
 .env
-src/pages/DeliveriesPage.jsx
-src/pages/RidersPage.jsx

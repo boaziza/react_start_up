@@ -1,13 +1,12 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import '../styles/viewPatient.css'
+import QrCode from '../components/icons/qrcode.png'
+import '../styles/app.css'
 
 export default function AssignPackage() {
     const navigate = useNavigate()
     const { id } = useParams()
-    const [activeTab, setActiveTab] = useState('patient')
-    const [activeMenu, setActiveMenu] = useState('rider')
-
+    const [activeTab, setActiveTab] = useState('drug-cycle')
     const [form, setForm] = useState({
         hospital_id: '',
         first_name: '',
@@ -18,8 +17,14 @@ export default function AssignPackage() {
         date: '',
         area: '',
         next_date: '',
+        delivery_id: '',
     })
     const [loading, setLoading] = useState(true)
+
+    const [riders, setRiders] = useState([])
+    const [selectedRider, setSelectedRider] = useState(null)
+    const [riderFilter, setRiderFilter] = useState('All')
+    const [assigning, setAssigning] = useState(false)
 
     useEffect(() => {
         if (!id) return
@@ -32,24 +37,52 @@ export default function AssignPackage() {
         })
         .then(data => {
             setForm({
-            hospital_id: data.hospital_id || '',
-            first_name: data.name || '',
-            phone: data.phone_number || '',
-            days_supply: data.deliveries[0]?.days_supply || '',
-            cycle_start: data.deliveries[0]?.cycle_start || '',
-            cycle_end: data.deliveries[0]?.cycle_end || '',
-            date: data.deliveries[0]?.date || '',
-            area: data.deliveries[0]?.area || '',
-            next_date: data.deliveries[0]?.next_date || '',
+                hospital_id: data.hospital_id || '',
+                first_name: data.name || '',
+                phone: data.phone_number || '',
+                days_supply: data.deliveries[0]?.days_supply || '',
+                cycle_start: data.deliveries[0]?.cycle_start || '',
+                cycle_end: data.deliveries[0]?.cycle_end || '',
+                date: data.deliveries[0]?.date || '',
+                area: data.deliveries[0]?.area || '',
+                next_date: data.deliveries[0]?.next_date || '',
+                delivery_id: data.deliveries[0]?.id || '',
             })
         })
-        .catch(error => {
-            console.error('Failed to load patient:', error)
-        })
-        .finally(() => {
-            setLoading(false)
-        })
+        .catch(error => console.error('Failed to load patient:', error))
+        .finally(() => setLoading(false))
     }, [id])
+
+    useEffect(() => {
+        fetch('http://localhost:4000/api/riders')
+            .then(res => res.json())
+            .then(setRiders)
+            .catch(err => console.error('Failed to load riders:', err))
+    }, [])
+
+    const filteredRiders = riders.filter(r => {
+        if (riderFilter === 'All') return true
+        if (riderFilter === 'Unassigned') return r.number_of_deliveries === 0
+        if (riderFilter === 'Assigned') return r.number_of_deliveries > 0
+        return r.area?.toLowerCase() === riderFilter.toLowerCase()
+    })
+
+    // function handleAssignRider() {
+    //     if (!selectedRider || !form.delivery_id) return
+    //     setAssigning(true)
+    //     fetch(`http://localhost:4000/api/deliveries/${form.delivery_id}/assign-rider`, {
+    //         method: 'PATCH',
+    //         headers: { 'Content-Type': 'application/json' },
+    //         body: JSON.stringify({ riderId: selectedRider }),
+    //     })
+    //     .then(res => {
+    //         if (!res.ok) throw new Error('Failed to assign rider')
+    //         return res.json()
+    //     })
+    //     .then(() => setActiveTab('scan-package'))
+    //     .catch(err => console.error(err))
+    //     .finally(() => setAssigning(false))
+    // }
 
     function handleChange(e) {
         setForm({ ...form, [e.target.name]: e.target.value })
@@ -65,7 +98,7 @@ export default function AssignPackage() {
                 <div className="vp-nav-links">
                     <a className="vp-nav-link" onClick={() => navigate('/Overview')}>Overview</a>
                     <a className="vp-nav-link" onClick={() => navigate('/Deliveries')}>Deliveries</a>
-                    <a className="vp-nav-link active" onClick={() => navigate('/Patients')}>Patients</a>
+                    <a className="vp-nav-link active">Patients</a>
                     <a className="vp-nav-link" onClick={() => navigate('/DispatchRiders')}>Dispatch Riders</a>
                     <a className="vp-nav-link" onClick={() => navigate('/Admin')}>Admin</a>
                 </div>
@@ -128,10 +161,10 @@ export default function AssignPackage() {
                             Assign Dispatch Rider
                         </button>
                         <button
-                            className={`vp-tab ${activeTab === 'scan-page' ? 'active' : ''}`}
-                            onClick={() => setActiveTab('scan-page')}
+                            className={`vp-tab ${activeTab === 'scan-package' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('scan-package')}
                         >
-                            Scan Page
+                            Scan Package
                         </button>
                     </div>
 
@@ -169,55 +202,98 @@ export default function AssignPackage() {
                         </div>
                     )}
 
-                    {activeTab === 'delivery' && (
+                    {activeTab === 'assign-rider' && (
                         <div className="vp-tab-content">
-                            <div className="vp-form-header">
-                                <div>
-                                    <h2>Delivery Information</h2>
-                                    <p>Information about delivery status.</p>
-                                </div>
-                                <button className="vp-edit-btn">✎ Edit Delivery Information</button>
+
+                            {/* Filter pills */}
+                            <div className="rider-filters">
+                                {['All', 'Unassigned', 'Assigned'].map(f => (
+                                    <button
+                                        key={f}
+                                        className={`rider-filter-btn ${riderFilter === f ? 'active' : ''}`}
+                                        onClick={() => setRiderFilter(f)}
+                                    >
+                                        {f} ({
+                                            f === 'All' ? riders.length :
+                                            f === 'Unassigned' ? riders.filter(r => r.number_of_deliveries === 0).length :
+                                            riders.filter(r => r.number_of_deliveries > 0).length
+                                        })
+                                    </button>
+                                ))}
                             </div>
 
-                            <div className="vp-form">
-                                <div className="vp-field full">
-                                    <label>Next Delivery Date</label>
-                                    <input
-                                        name="next_delivery_date"
-                                        value={form.date}
-                                        onChange={handleChange}
-                                    />
+                            {/* Rider cards */}
+                            <div className="rider-list">
+                                {filteredRiders.length === 0 && (
+                                    <p style={{ color: '#9ca3af', fontSize: 14 }}>No riders found.</p>
+                                )}
+                                {filteredRiders.map(rider => (
+                                    <div
+                                        key={rider.id}
+                                        className={`rider-card ${selectedRider === rider.id ? 'selected' : ''}`}
+                                        onClick={() => setSelectedRider(rider.id)}
+                                    >
+                                        <input
+                                            type="radio"
+                                            name="rider"
+                                            checked={selectedRider === rider.id}
+                                            onChange={() => setSelectedRider(rider.id)}
+                                        />
+                                        <div className="rider-card-col">
+                                            <span className="rider-card-label">Dispatch Rider's Name</span>
+                                            <span className="rider-card-value">{rider.name}</span>
+                                        </div>
+                                        <div className="rider-card-col">
+                                            <span className="rider-card-label">Delivery Area</span>
+                                            <span className="rider-card-value">{rider.area}</span>
+                                        </div>
+                                        <div className="rider-card-col">
+                                            <span className="rider-card-label">Number of Deliveries</span>
+                                            <span className="rider-card-value">{rider.number_of_deliveries} Deliveries</span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div className="vp-form-footer">
+                                <button
+                                    className="vp-save-btn"
+                                    disabled={!selectedRider || assigning}
+                                    // onClick={handleAssignRider}
+                                >
+                                    {assigning ? 'Assigning...' : 'Next'}
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'scan-package' && (
+                        <div className="vp-tab-content">
+                            <div className="vp-form-header">
+                                <h1><p>Scan the package to assign to <strong>{form.first_name}</strong></p> </h1>
+                            </div>
+                            <div className="as-field">
+                                <div className="as-field-qr">
+                                    <img src={QrCode} alt="QR Code" className="qr-code"/>
+                                    
+                                <button className="vp-save-btn">
+                                    Scan Package
+                                </button>
                                 </div>
 
-                                <div className="vp-field half">
-                                    <label>Delivery Area</label>
-                                    <input
-                                        name="delivery_area"
-                                        value={form.area}
-                                        onChange={handleChange}
-                                    />
-                                </div>
+                                <div className="as-field-code">
 
-                                <div className="vp-field half">
-                                    <label>Delivery Address</label>
-                                    <input
-                                        name="delivery_address"
-                                        value={form.address}
-                                        onChange={handleChange}
-                                    />
-                                </div>
+                                    <h2>Trouble scanning QR code?</h2>
+                                    <h2>Enter manually</h2>
 
-                                <div className="vp-field half">
-                                    <label>Payment Status</label>
-                                    <input
-                                        name="payment_status"
-                                        value={form.payment_status ? 'Paid' : 'Unpaid'}
-                                        onChange={handleChange}
+                                    <input 
+                                    type="text"
+                                    placeholder="Enter Code"
                                     />
-                                </div>
 
-                                <div className="vp-form-footer">
-                                    <button className="vp-save-btn">Save Changes</button>
+                                    <button className="vp-save-btn">
+                                        Submit Code
+                                    </button>
                                 </div>
                             </div>
                         </div>
