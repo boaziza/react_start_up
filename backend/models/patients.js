@@ -14,9 +14,7 @@ export async function getPatientById(id) {
                     json_build_object(
                         'id',             deliveries.id,
                         'drug_name',      deliveries.drug_name,
-                        'days_supply',    deliveries.days_supply,
-                        'cycle_start',    deliveries.cycle_start,
-                        'cycle_end',      deliveries.cycle_end,
+                        'drug_period',    deliveries.drug_period,
                         'payment_status', deliveries.payment_status,
                         'package_code',   deliveries.package_code,
                         'date',           deliveries.date,

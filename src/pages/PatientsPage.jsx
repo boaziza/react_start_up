@@ -4,93 +4,74 @@ import '../styles/app.css'
 
 export default function PatientsPage() {
     const navigate = useNavigate()
-    const [search, setSearch] = useState('')
     const user = JSON.parse(localStorage.getItem('user') || '{}')
+    const [search, setSearch] = useState('')
     const [sortBy, setSortBy] = useState('hospital_id')
     const [page, setPage] = useState(1)
     const perPage = 10
 
     return (
-        <div className="min-h-screen bg-gray-100">
+        <div className="vp-page">
 
             {/* Navbar */}
-            <nav className="bg-white border-b border-gray-200 px-6 py-0 flex items-center justify-between h-14">
+            <nav className="vp-navbar">
+                <div className="vp-logo">N</div>
 
-                {/* Logo */}
-                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-green-600 text-white font-bold text-sm flex-shrink-0">
-                    N
+                <div className="vp-nav-links">
+                    <a className="vp-nav-link" onClick={() => navigate('/overview')}>Overview</a>
+                    <a className="vp-nav-link" onClick={() => navigate('/deliveries')}>Deliveries</a>
+                    <a className="vp-nav-link active">Patients</a>
+                    <a className="vp-nav-link" onClick={() => navigate('/dispatchRiders')}>Dispatch Riders</a>
+                    <a className="vp-nav-link" onClick={() => navigate('/admin')}>Admin</a>
                 </div>
-
-                {/* Links */}
-                <div className="flex items-center h-full">
-                    <a onClick={() => navigate('/overview')} className="h-full flex items-center px-4 text-gray-400 text-sm border-b-2 border-transparent hover:text-gray-600">
-                        Overview
-                    </a>
-                    <a onClick={() => navigate('/deliveries')} className="h-full flex items-center px-4 text-gray-400 text-sm border-b-2 border-transparent hover:text-gray-600">
-                        Deliveries
-                    </a>
-                    <a href="#" className="h-full flex items-center px-4 text-blue-600 text-sm font-semibold border-b-2 border-blue-600">
-                        Patients
-                    </a>
-                    <a onClick={() => navigate('/DispatchRiders')} className="h-full flex items-center px-4 text-gray-400 text-sm border-b-2 border-transparent hover:text-gray-600">
-                        Dispatch Riders
-                    </a>
-                    <a onClick={() => navigate('/admin')} className="h-full flex items-center px-4 text-gray-400 text-sm border-b-2 border-transparent hover:text-gray-600">
-                        Admin
-                    </a>
-                </div>
-
-                {/* User */}
 
                 <div className="vp-user" onClick={() => { localStorage.removeItem('user'); navigate('/login') }}>
                     <div className="vp-avatar">{user.username?.[0]?.toUpperCase() || 'U'}</div>
                     <span>{user.username || 'User'}</span>
-                    <span className="vp-chevron">▾</span>
+                    <span className="vp-chevron">&#9662;</span>
                 </div>
             </nav>
 
-            <div className="px-8 py-6">
+            {/* Page content */}
+            <div className="pat-content">
 
                 {/* Page heading */}
-                <div className="flex items-center justify-between mb-5">
-                    <h1 className="text-xl font-semibold text-gray-800">Patients</h1>
-                    <button className="flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-md">
-                        + Add Patient
-                    </button>
+                <div className="pat-page-header">
+                    <h1 className="pat-title">Patients</h1>
+                    <button className="pat-add-btn">+ Add Patient</button>
                 </div>
 
-                {/* White card */}
-                <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+                {/* Card */}
+                <div className="pat-card">
 
-                    {/* Sort + Search bar */}
-                    <div className="flex items-center justify-between px-5 py-3 border-b border-gray-200">
-                        <div className="flex items-center gap-2 text-sm text-gray-500">
+                    {/* Toolbar */}
+                    <div className="del-toolbar">
+                        <div className="del-sort">
                             <span>Sort by</span>
-                            <div className="relative">
-                                <select
-                                    value={sortBy}
-                                    onChange={(e) => { setSortBy(e.target.value); setPage(1) }}
-                                    className="appearance-none border border-gray-300 rounded px-3 py-1.5 pr-7 text-sm text-gray-700 outline-none focus:border-blue-400 bg-white cursor-pointer"
-                                >
-                                    <option value="hospital_id">Hospital ID</option>
-                                    <option value="name">Name</option>
-                                </select>
-                                <svg className="w-3 h-3 text-gray-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                </svg>
-                            </div>
+                            <select value={sortBy} onChange={e => { setSortBy(e.target.value); setPage(1) }}>
+                                <option value="hospital_id">Hospital ID</option>
+                                <option value="name">Name</option>
+                            </select>
                         </div>
-                        <input
-                            type="text"
-                            placeholder="Search by patient name, id..."
-                            value={search}
-                            onChange={(e) => { setSearch(e.target.value); setPage(1) }}
-                            className="border border-gray-300 rounded px-3 py-1.5 text-sm w-56 outline-none focus:border-blue-400 text-gray-700 placeholder-gray-400"
-                        />
+                        <div className="del-search-wrapper">
+                            <span className="del-search-icon">&#128269;</span>
+                            <input
+                                className="del-search"
+                                placeholder="Search by patient name, id..."
+                                value={search}
+                                onChange={e => { setSearch(e.target.value); setPage(1) }}
+                            />
+                        </div>
                     </div>
 
                     {/* Table */}
-                    <Tables search={search} sortBy={sortBy} page={page} setPage={setPage} perPage={perPage} />
+                    <PatientTable
+                        search={search}
+                        sortBy={sortBy}
+                        page={page}
+                        setPage={setPage}
+                        perPage={perPage}
+                    />
 
                 </div>
             </div>
@@ -99,21 +80,21 @@ export default function PatientsPage() {
 }
 
 function StatusBadge({ status }) {
-    const map = {
-        'Completed':    'bg-green-100 text-green-700',
-        'Due & Paid':   'bg-orange-100 text-orange-500',
-        'Due & Unpaid': 'bg-red-100 text-red-500',
-        'Assigned':     'bg-blue-100 text-blue-600',
-        'Paid':         'bg-green-100 text-green-700',
+    const colorMap = {
+        'Completed':    'pat-badge-green',
+        'Due & Paid':   'pat-badge-orange',
+        'Due & Unpaid': 'pat-badge-red',
+        'Assigned':     'pat-badge-blue',
+        'Paid':         'pat-badge-green',
     }
     return (
-        <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${map[status] ?? 'bg-gray-100 text-gray-500'}`}>
+        <span className={`pat-badge ${colorMap[status] ?? 'pat-badge-gray'}`}>
             {status}
         </span>
     )
 }
 
-function Tables({ search, sortBy, page, setPage, perPage }) {
+function PatientTable({ search, sortBy, page, setPage, perPage }) {
     const navigate = useNavigate()
     const [patients, setPatients] = useState([])
 
@@ -140,39 +121,37 @@ function Tables({ search, sortBy, page, setPage, perPage }) {
 
     return (
         <>
-            <table className="w-full text-sm">
+            <table className="del-table">
                 <thead>
-                    <tr className="text-left border-b border-gray-200">
-                        <th className="px-5 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wide">Hospital ID</th>
-                        <th className="px-5 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wide">Patient's Name</th>
-                        <th className="px-5 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wide">Phone Number</th>
-                        <th className="px-5 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wide">Next Delivery Date</th>
-                        <th className="px-5 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wide">Location</th>
-                        <th className="px-5 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wide">Status</th>
-                        <th className="px-5 py-3"></th>
+                    <tr>
+                        <th>Hospital ID</th>
+                        <th>Patient's Name</th>
+                        <th>Phone Number</th>
+                        <th>Next Delivery Date</th>
+                        <th>Location</th>
+                        <th>Status</th>
+                        <th></th>
                     </tr>
                 </thead>
                 <tbody>
                     {paginated.length === 0 ? (
                         <tr>
-                            <td colSpan="7" className="px-5 py-12 text-center text-gray-400 text-sm">
-                                No patients found
-                            </td>
+                            <td colSpan={7} className="del-empty">No patients found.</td>
                         </tr>
                     ) : (
                         paginated.map(patient => (
-                            <tr key={patient.id} className="border-b border-gray-100 last:border-0 hover:bg-gray-50">
-                                <td className="px-5 py-4 text-gray-500">{patient.hospital_id}</td>
-                                <td className="px-5 py-4 text-gray-800 font-medium">{patient.name}</td>
-                                <td className="px-5 py-4 text-gray-500">{patient.phone_number}</td>
-                                <td className="px-5 py-4 text-gray-500">{patient.next_delivery_date}</td>
-                                <td className="px-5 py-4 text-gray-500">{patient.location}</td>
-                                <td className="px-5 py-4">
-                                    <StatusBadge status={patient.status} />
-                                </td>
-                                <td className="px-5 py-4">
-                                    <button className="border border-gray-300 text-gray-500 text-xs px-3 py-1.5 rounded hover:bg-gray-50" 
-                                        onClick={() => navigate(`/patients/ViewPatient/${patient.id}`)}>
+                            <tr key={patient.id}>
+                                <td>{patient.hospital_id}</td>
+                                <td>{patient.name}</td>
+                                <td>{patient.phone_number}</td>
+                                <td>{new Date(patient.next_delivery_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</td>
+                                <td>{patient.location}</td>
+                                <td><StatusBadge status={patient.status} /></td>
+                                <td>
+                                    <button
+                                        className="del-view-btn"
+                                        onClick={() => navigate(`/patients/ViewPatient/${patient.id}`)}
+                                    >
                                         View
                                     </button>
                                 </td>
@@ -183,33 +162,31 @@ function Tables({ search, sortBy, page, setPage, perPage }) {
             </table>
 
             {/* Pagination */}
-            <div className="flex items-center justify-between px-5 py-4 border-t border-gray-200 text-sm text-gray-400">
-                <span>You are viewing {paginated.length} out of {filtered.length} patients</span>
-                <div className="flex items-center gap-1">
+            <div className="pat-pagination">
+                <span className="pat-pagination-info">
+                    Showing {paginated.length} of {filtered.length} patients
+                </span>
+                <div className="pat-pagination-controls">
                     <button
+                        className="pat-page-btn"
                         onClick={() => setPage(p => Math.max(1, p - 1))}
                         disabled={page === 1}
-                        className="px-3 py-1 rounded hover:bg-gray-100 disabled:opacity-40 text-gray-500"
                     >
                         Prev
                     </button>
                     {Array.from({ length: totalPages }, (_, i) => i + 1).map(n => (
                         <button
                             key={n}
+                            className={`pat-page-btn ${page === n ? 'active' : ''}`}
                             onClick={() => setPage(n)}
-                            className={`w-7 h-7 rounded text-xs font-medium ${
-                                page === n
-                                    ? 'bg-blue-600 text-white'
-                                    : 'text-gray-500 hover:bg-gray-100'
-                            }`}
                         >
                             {n}
                         </button>
                     ))}
                     <button
+                        className="pat-page-btn"
                         onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                         disabled={page === totalPages}
-                        className="px-3 py-1 rounded hover:bg-gray-100 disabled:opacity-40 text-gray-500"
                     >
                         Next
                     </button>

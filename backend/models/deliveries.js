@@ -59,7 +59,7 @@ export async function confirmDelivery(deliveryId) {
     return rows[0];
 }
 
-export async function createDelivery({ patient_id, drug_name, days_supply, cycle_start, cycle_end }) {
+export async function createDelivery({ patient_id, drug_name, drug_period }) {
 
     const existingDelivery = await getDeliveryById(id);
     if (existingDelivery) {
@@ -67,8 +67,8 @@ export async function createDelivery({ patient_id, drug_name, days_supply, cycle
     }
     
     const { rows } = await pool.query(
-        'INSERT INTO deliveries (patient_id, drug_name, days_supply, cycle_start, cycle_end) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-        [patient_id, drug_name, days_supply, cycle_start, cycle_end]
+        'INSERT INTO deliveries (patient_id, drug_name, drug_period) VALUES ($1, $2, $3) RETURNING *',
+        [patient_id, drug_name, drug_period]
     );
     return rows[0];
 }

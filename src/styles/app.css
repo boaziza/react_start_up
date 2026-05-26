@@ -192,7 +192,7 @@
     font-weight: 600;
 }
 .vp-badge.paid { background: #dcfce7; color: #16a34a; }
-
+.vp-badge.unpaid { background: #fcdcdc; color: #b41414; }
 /* =============================================
    TABS
    ============================================= */
@@ -268,6 +268,13 @@
 .vp-field input:focus,
 .vp-field select:focus { border-color: #2563eb; }
 
+.vp-field input:read-only,
+.vp-field select:disabled {
+    background: #f3f4f6;
+    color: #6b7280;
+    cursor: default;
+}
+
 .vp-form-footer {
     width: 100%;
     display: flex;
@@ -287,6 +294,18 @@
 }
 .vp-save-btn:hover { background: #2563eb; }
 .vp-save-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.vp-back-btn {
+    background: white;
+    color: #6b7280;
+    border: 1px solid #d1d5db;
+    padding: 10px 24px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+.vp-back-btn:hover { background: #f3f4f6; }
 
 /* =============================================
    DRUG CYCLE OPTIONS
@@ -572,21 +591,92 @@
 }
 
 /* =============================================
-   PATIENTS PAGE (legacy — patients.css)
+   PATIENTS PAGE
    ============================================= */
 
-.navbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 10px;
-    padding: 10px;
+.pat-content {
+    padding: 24px 32px;
 }
 
-.navbar-links { display: flex; gap: 8px; }
+.pat-page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
 
-.nav-link { text-decoration: none; color: black; padding: 10px; }
+.pat-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #111827;
+    margin: 0;
+}
 
-.heading { display: flex; justify-content: space-between; padding: 10px; }
+.pat-add-btn {
+    background: #2563eb;
+    color: white;
+    border: none;
+    padding: 9px 18px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+.pat-add-btn:hover { background: #1d4ed8; }
 
-.table-header { display: flex; justify-content: space-between; padding: 10px; }
+.pat-card {
+    background: white;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    overflow: hidden;
+}
+
+.pat-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+}
+.pat-badge-green  { background: #dcfce7; color: #16a34a; }
+.pat-badge-orange { background: #ffedd5; color: #ea580c; }
+.pat-badge-red    { background: #fee2e2; color: #dc2626; }
+.pat-badge-blue   { background: #dbeafe; color: #2563eb; }
+.pat-badge-gray   { background: #f3f4f6; color: #6b7280; }
+
+.pat-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    border-top: 1px solid #e5e7eb;
+    font-size: 13px;
+    color: #9ca3af;
+}
+
+.pat-pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.pat-page-btn {
+    padding: 5px 10px;
+    min-width: 30px;
+    height: 30px;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    background: white;
+    font-size: 13px;
+    color: #6b7280;
+    cursor: pointer;
+}
+.pat-page-btn:hover:not(:disabled) { background: #f3f4f6; }
+.pat-page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.pat-page-btn.active {
+    background: #2563eb;
+    color: white;
+    border-color: #2563eb;
+    font-weight: 600;
+}

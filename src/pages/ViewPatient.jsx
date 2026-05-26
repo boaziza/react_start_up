@@ -7,7 +7,9 @@ export default function ViewPatient() {
     const { id } = useParams()
     const user = JSON.parse(localStorage.getItem('user') || '{}')
     const [activeTab, setActiveTab] = useState('patient')
-    const [activeMenu, setActiveMenu] = useState('rider')
+    const [activeMenu, setActiveMenu] = useState('patient-profile')
+    const [editingPatient, setEditingPatient] = useState(false)
+    const [editingDelivery, setEditingDelivery] = useState(false)
 
     const [form, setForm] = useState({
         hospital_id: '',
@@ -16,12 +18,7 @@ export default function ViewPatient() {
         gender: '',
         phone: '',
         email: '',
-        drug_name: '',
-        days_supply: '',
-        cycle_start: '',
-        cycle_end: '',
-        payment_status: '',
-        package_code: '',
+        deliveries: [],
     })
     const [loading, setLoading] = useState(true)
 
@@ -39,18 +36,13 @@ export default function ViewPatient() {
             hospital_id: data.hospital_id || '',
             first_name: data.name || '',
             last_name: data.last_name || '',
+            location: data.location || '',
+            address: data.address || '',
             gender: data.gender || '',
             phone: data.phone_number || '',
             email: data.email || '',
-            drug_name: data.deliveries[0]?.drug_name || '',
-            days_supply: data.deliveries[0]?.days_supply || '',
-            cycle_start: data.deliveries[0]?.cycle_start || '',
-            cycle_end: data.deliveries[0]?.cycle_end || '',
-            payment_status: data.deliveries[0]?.payment_status ?? false,
-            package_code: data.deliveries[0]?.package_code || '',
-            date: data.deliveries[0]?.date || '',
-            area: data.deliveries[0]?.area || '',
-            address: data.deliveries[0]?.address || '',
+            next_delivery_date: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) || '',
+            deliveries: data.deliveries || [],
             })
         })
         .catch(error => {
@@ -97,7 +89,7 @@ export default function ViewPatient() {
                 <div className="vp-subheader-right">
                     <p className="vp-delivery-note">
                         Patient's next delivery date is<br />
-                        <strong>{new Date(form.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}, in {form.days_supply} day(s)</strong>
+                        <strong>{new Date(form.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}, in {form.drug_period} day(s)</strong>
                     </p>
                     <button className="vp-assign-btn" onClick={() => navigate(`/patients/ViewPatient/${id}/AssignPackage`)}>Assign Package to Patient</button>
                 </div>
@@ -108,174 +100,188 @@ export default function ViewPatient() {
 
                 {/* Sidebar */}
                 <div className="vp-sidebar">
-                    <p className="vp-sidebar-label">Patient</p>
+                    <p className="vp-sidebar-label">Patient's Information</p>
                     <div
-                        className={`vp-sidebar-item ${activeMenu === 'rider' ? 'active' : ''}`}
-                        onClick={() => setActiveMenu('rider')}
+                        className={`vp-sidebar-item ${activeMenu === 'patient-profile' ? 'active' : ''}`}
+                        onClick={() => setActiveMenu('patient-profile')}
                     >
                         Patient's Profile
                     </div>
                     <div
-                        className={`vp-sidebar-item ${activeMenu === 'history' ? 'active' : ''}`}
-                        onClick={() => setActiveMenu('history')}
+                        className={`vp-sidebar-item ${activeMenu === 'delivery-history' ? 'active' : ''}`}
+                        onClick={() => setActiveMenu('delivery-history')}
                     >
                         Delivery History
                     </div>
                 </div>
 
                 {/* Main panel */}
-                <div className="vp-main">
+                {activeMenu === 'patient-profile' && (
+                    <div className="vp-main">
 
-                    {/* Payment status */}
-                    <div className="vp-payment-row">
-                        <span className="vp-payment-label">Payment Status</span>
-                        <span className="vp-badge paid">Paid</span>
-                    </div>
-
-                    {/* Tabs */}
-                    <div className="vp-tabs">
-                        <button
-                            className={`vp-tab ${activeTab === 'patient' ? 'active' : ''}`}
-                            onClick={() => setActiveTab('patient')}
-                        >
-                            Patient Information
-                        </button>
-                        <button
-                            className={`vp-tab ${activeTab === 'delivery' ? 'active' : ''}`}
-                            onClick={() => setActiveTab('delivery')}
-                        >
-                            Delivery Information
-                        </button>
-                    </div>
-
-                    {/* Tab content */}
-                    {activeTab === 'patient' && (
-                        <div className="vp-tab-content">
-                            <div className="vp-form-header">
-                                <div>
-                                    <h2>Patient's Information</h2>
-                                    <p>Personal information about Patient.</p>
-                                </div>
-                                <button className="vp-edit-btn">✎ Edit Patient's Information</button>
-                            </div>
-
-                            <div className="vp-form">
-                                <div className="vp-field full">
-                                    <label>Hospital ID</label>
-                                    <input
-                                        name="hospital_id"
-                                        value={form.hospital_id}
-                                        onChange={handleChange}
-                                    />
-                                </div>
-
-                                <div className="vp-field half">
-                                    <label>First Name</label>
-                                    <input
-                                        name="first_name"
-                                        value={form.first_name}
-                                        onChange={handleChange}
-                                    />
-                                </div>
-
-                                <div className="vp-field half">
-                                    <label>Last Name</label>
-                                    <input
-                                        name="last_name"
-                                        value={form.last_name}
-                                        onChange={handleChange}
-                                    />
-                                </div>
-
-                                <div className="vp-field half">
-                                    <label>Gender</label>
-                                    <select name="gender" value={form.gender} onChange={handleChange}>
-                                        <option>Male</option>
-                                        <option>Female</option>
-                                    </select>
-                                </div>
-
-                                <div className="vp-field half">
-                                    <label>Phone Number</label>
-                                    <input
-                                        name="phone"
-                                        value={form.phone}
-                                        onChange={handleChange}
-                                    />
-                                </div>
-
-                                <div className="vp-field full">
-                                    <label>Email Address</label>
-                                    <input
-                                        name="email"
-                                        value={form.email}
-                                        onChange={handleChange}
-                                    />
-                                </div>
-
-                                <div className="vp-form-footer">
-                                    <button className="vp-save-btn">Save Changes</button>
-                                </div>
-                            </div>
+                        {/* Payment status */}
+                        <div className="vp-payment-row">
+                            <span className="vp-payment-label">Payment Status</span>
+                            <span className={`vp-badge ${form.payment_status ? 'paid' : 'unpaid'}`}>{form.payment_status ? 'Paid' : 'Unpaid'}</span>
                         </div>
-                    )}
 
-                    {activeTab === 'delivery' && (
-                        <div className="vp-tab-content">
-                            <div className="vp-form-header">
-                                <div>
-                                    <h2>Delivery Information</h2>
-                                    <p>Information about delivery status.</p>
-                                </div>
-                                <button className="vp-edit-btn">✎ Edit Delivery Information</button>
-                            </div>
-
-                            <div className="vp-form">
-                                <div className="vp-field full">
-                                    <label>Next Delivery Date</label>
-                                    <input
-                                        name="next_delivery_date"
-                                        value={form.date}
-                                        onChange={handleChange}
-                                    />
-                                </div>
-
-                                <div className="vp-field half">
-                                    <label>Delivery Area</label>
-                                    <input
-                                        name="delivery_area"
-                                        value={form.area}
-                                        onChange={handleChange}
-                                    />
-                                </div>
-
-                                <div className="vp-field half">
-                                    <label>Delivery Address</label>
-                                    <input
-                                        name="delivery_address"
-                                        value={form.address}
-                                        onChange={handleChange}
-                                    />
-                                </div>
-
-                                <div className="vp-field half">
-                                    <label>Payment Status</label>
-                                    <input
-                                        name="payment_status"
-                                        value={form.payment_status ? 'Paid' : 'Unpaid'}
-                                        onChange={handleChange}
-                                    />
-                                </div>
-
-                                <div className="vp-form-footer">
-                                    <button className="vp-save-btn">Save Changes</button>
-                                </div>
-                            </div>
+                        {/* Tabs */}
+                        <div className="vp-tabs">
+                            <button
+                                className={`vp-tab ${activeTab === 'patient' ? 'active' : ''}`}
+                                onClick={() => setActiveTab('patient')}
+                            >
+                                Patient Information
+                            </button>
+                            <button
+                                className={`vp-tab ${activeTab === 'delivery' ? 'active' : ''}`}
+                                onClick={() => setActiveTab('delivery')}
+                            >
+                                Delivery Information
+                            </button>
                         </div>
-                        
-                    )}
 
+                        {/* Tab content */}
+                        {activeTab === 'patient' && (
+                            <div className="vp-tab-content">
+                                <div className="vp-form-header">
+                                    <div>
+                                        <h2>Patient's Information</h2>
+                                        <p>Personal information about Patient.</p>
+                                    </div>
+                                    <button className="vp-edit-btn" onClick={() => setEditingPatient(e => !e)}>
+                                        {editingPatient ? '✕ Cancel' : '✎ Edit Patient\'s Information'}
+                                    </button>
+                                </div>
+
+                                <div className="vp-form">
+                                    <div className="vp-field full">
+                                        <label>Hospital ID</label>
+                                        <input readOnly={!editingPatient} name="hospital_id" value={form.hospital_id} onChange={handleChange} />
+                                    </div>
+
+                                    <div className="vp-field half">
+                                        <label>First Name</label>
+                                        <input readOnly={!editingPatient} name="first_name" value={form.first_name} onChange={handleChange} />
+                                    </div>
+
+                                    <div className="vp-field half">
+                                        <label>Last Name</label>
+                                        <input readOnly={!editingPatient} name="last_name" value={form.last_name} onChange={handleChange} />
+                                    </div>
+
+                                    <div className="vp-field half">
+                                        <label>Gender</label>
+                                        <select disabled={!editingPatient} name="gender" value={form.gender} onChange={handleChange}>
+                                            <option>Male</option>
+                                            <option>Female</option>
+                                        </select>
+                                    </div>
+
+                                    <div className="vp-field half">
+                                        <label>Phone Number</label>
+                                        <input readOnly={!editingPatient} name="phone" value={form.phone} onChange={handleChange} />
+                                    </div>
+
+                                    <div className="vp-field full">
+                                        <label>Email Address</label>
+                                        <input readOnly={!editingPatient} name="email" value={form.email} onChange={handleChange} />
+                                    </div>
+                                    <button className="vp-save-btn" disabled={!editingPatient} onClick={() => setEditingPatient(false)}>
+                                        <span>Save</span>
+                                    </button>                                
+                                </div>
+                            </div>
+                        )}
+
+                        {activeTab === 'delivery' && (
+                            <div className="vp-tab-content">
+                                <div className="vp-form-header">
+                                    <div>
+                                        <h2>Delivery Information</h2>
+                                        <p>Information about delivery status.</p>
+                                    </div>
+                                    <button className="vp-edit-btn" onClick={() => setEditingDelivery(e => !e)}>
+                                        {editingDelivery ? '✕ Cancel' : '✎ Edit Delivery Information'}
+                                    </button>
+                                </div>
+
+                                <div className="vp-form">
+                                    <div className="vp-field full">
+                                        <label>Next Delivery Date</label>
+                                        <input type="date" readOnly={!editingDelivery} name="next_delivery_date" value={form.next_delivery_date} onChange={handleChange} />
+                                    </div>
+
+                                    <div className="vp-field half">
+                                        <label>Delivery Area</label>
+                                        <input readOnly={!editingDelivery} name="delivery_area" value={form.location} onChange={handleChange} />
+                                    </div>
+
+                                    <div className="vp-field half">
+                                        <label>Delivery Address</label>
+                                        <input readOnly={!editingDelivery} name="delivery_address" value={form.address} onChange={handleChange} />
+                                    </div>
+
+                                    <div className="vp-field half">
+                                        <label>Payment Status</label>
+                                        <select disabled={!editingDelivery} name="payment_status" value={form.payment_status} onChange={handleChange}>
+                                            <option value={true}>Paid</option>
+                                            <option value={false}>Unpaid</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <button className="vp-save-btn" disabled={!editingDelivery} onClick={() => setEditingDelivery(false)}>
+                                    <span>Save</span>
+                                </button>
+                            </div>
+                            
+                        )}
+
+                    </div>
+                )}
+
+            {activeMenu === 'delivery-history' &&(
+                    <div className="vp-main" style={{ padding: 0, overflow: 'hidden' }}>
+                    <table className="del-table">
+                        <thead>
+                            <tr>
+                                <th>Package Code</th>
+                                <th>Delivery Date</th>
+                                <th>Patient's Name</th>
+                                <th>Phone Number</th>
+                                <th>Location</th>
+                                {/* <th></th> */}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {form.deliveries.length === 0 && (
+                                <tr>
+                                    <td colSpan={6} className="del-empty">
+                                        No deliveries found.
+                                    </td>
+                                </tr>
+                            )}
+                            {form.deliveries.map(d => (
+                                <tr key={d.id}>
+                                    <td>{d.package_code}</td>
+                                    <td>{d.date}</td>
+                                    <td>{form.first_name}</td>
+                                    <td>{form.phone}</td>
+                                    <td>{d.area}</td>
+                                    {/* <td>
+                                        <button
+                                            className="del-view-btn"
+                                            onClick={() => navigate(`/deliveries/${d.id}`)}
+                                        >
+                                            View
+                                        </button>
+                                    </td> */}
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
                 </div>
+            )}
             </div>
         </div>
     )

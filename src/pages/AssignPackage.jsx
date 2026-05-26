@@ -11,12 +11,19 @@ export default function AssignPackage() {
 
     const [activeTab, setActiveTab] = useState('drug-cycle')
     const [cycleChoice, setCycleChoice] = useState('same')
+    const [newDeliveryDate, setNewDeliveryDate] = useState('')
+    const [newDrugPeriod, setNewDrugPeriod] = useState('')
+
+    const calculatedNextDate = newDeliveryDate && newDrugPeriod
+        ? new Date(new Date(newDeliveryDate).setDate(new Date(newDeliveryDate).getDate() + Number(newDrugPeriod)))
+            .toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
+        : ''
 
     const [form, setForm] = useState({
         hospital_id: '',
         first_name: '',
         phone: '',
-        days_supply: '',
+        drug_period: '',
         date: '',
         area: '',
         next_date: '',
@@ -49,7 +56,8 @@ export default function AssignPackage() {
                 hospital_id:  data.hospital_id || '',
                 first_name:   data.name || '',
                 phone:        data.phone_number || '',
-                days_supply:  data.deliveries[0]?.days_supply || '',
+                default_drug_period: data.default_drug_period || '',
+                drug_period:  data.deliveries[0]?.drug_period || '',
                 date:         data.deliveries[0]?.date || '',
                 area:         data.deliveries[0]?.area || '',
                 next_date:    data.deliveries[0]?.next_date || '',
@@ -71,6 +79,12 @@ export default function AssignPackage() {
     useEffect(() => {
         if (activeTab !== 'scan-package') stopScanner()
     }, [activeTab])
+
+    const nextDate = form.default_drug_period && form.date
+        ? new Date(new Date(form.date).setDate(new Date(form.date).getDate() + Number(form.default_drug_period)))
+            .toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
+        : ''
+    console.log('Next delivery date:', nextDate)
 
     const filteredRiders = riders.filter(r => {
         if (riderFilter === 'All')        return true
@@ -190,24 +204,24 @@ export default function AssignPackage() {
                 {/* Main panel */}
                 <div className="vp-main">
 
-                    {/* Tabs */}
+                    {/* Tabs — display only, Next button advances */}
                     <div className="vp-tabs">
-                        <button className={`vp-tab ${activeTab === 'drug-cycle' ? 'active' : ''}`} onClick={() => setActiveTab('drug-cycle')}>
+                        <span className={`vp-tab ${activeTab === 'drug-cycle' ? 'active' : ''}`}>
                             Set Drug Cycle/Length
-                        </button>
-                        <button className={`vp-tab ${activeTab === 'assign-rider' ? 'active' : ''}`} onClick={() => setActiveTab('assign-rider')}>
+                        </span>
+                        <span className={`vp-tab ${activeTab === 'assign-rider' ? 'active' : ''}`}>
                             Assign Dispatch Rider
-                        </button>
-                        <button className={`vp-tab ${activeTab === 'scan-package' ? 'active' : ''}`} onClick={() => setActiveTab('scan-package')}>
+                        </span>
+                        <span className={`vp-tab ${activeTab === 'scan-package' ? 'active' : ''}`}>
                             Scan Package
-                        </button>
+                        </span>
                     </div>
 
                     {/* ── Tab 1: Drug Cycle ── */}
                     {activeTab === 'drug-cycle' && (
                         <div className="vp-tab-content">
                             <div className="vp-form-header">
-                                <h2>{form.first_name} has a drug cycle of <strong>{form.days_supply}</strong> days.</h2>
+                                <h2>{form.first_name} has a drug cycle of <strong>{form.drug_period}</strong> days.</h2>
                             </div>
 
                             <div className="vp-form">
@@ -222,7 +236,7 @@ export default function AssignPackage() {
 
                                 {cycleChoice === 'same' && (
                                     <div className="vp-cycle-subtext">
-                                        <p>Deliver drug on <strong>{form.date}</strong> &amp; set next delivery date to <strong>{form.next_date}</strong></p>
+                                        <p>Deliver drug on <strong>{form.date}</strong> &amp; set next delivery date to <strong>{nextDate}</strong></p>
                                     </div>
                                 )}
 
@@ -239,14 +253,28 @@ export default function AssignPackage() {
                                     <div className="vp-cycle-subtext">
                                         <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
                                             <div className="vp-field half">
-                                                <label>New Delivery Date</label>
-                                                <input type="date" name="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} />
+                                                <label>Delivery Date</label>
+                                                <input
+                                                    type="date"
+                                                    value={newDeliveryDate}
+                                                    onChange={e => setNewDeliveryDate(e.target.value)}
+                                                />
                                             </div>
                                             <div className="vp-field half">
-                                                <label>Next Delivery Date</label>
-                                                <input type="date" name="next_date" value={form.next_date} onChange={e => setForm({ ...form, next_date: e.target.value })} />
+                                                <label>Drug Period (days)</label>
+                                                <input
+                                                    type="number"
+                                                    placeholder="e.g. 30"
+                                                    value={newDrugPeriod}
+                                                    onChange={e => setNewDrugPeriod(e.target.value)}
+                                                />
                                             </div>
                                         </div>
+                                        {calculatedNextDate && (
+                                            <p style={{ marginTop: 12, fontSize: 14, color: '#374151' }}>
+                                                Next delivery date: <strong>{calculatedNextDate}</strong>
+                                            </p>
+                                        )}
                                     </div>
                                 )}
 
@@ -305,7 +333,10 @@ export default function AssignPackage() {
                                 ))}
                             </div>
 
-                            <div className="vp-form-footer">
+                            <div className="vp-form-footer" style={{ justifyContent: 'space-between' }}>
+                                <button className="vp-back-btn" onClick={() => setActiveTab('drug-cycle')}>
+                                    Back
+                                </button>
                                 <button className="vp-save-btn"
                                     disabled={!selectedRider || assigning}
                                     onClick={handleAssignRider}
@@ -385,6 +416,12 @@ export default function AssignPackage() {
                                         </div>
                                     )}
                                 </div>
+                            </div>
+
+                            <div className="vp-form-footer" style={{ marginTop: 24 }}>
+                                <button className="vp-back-btn" onClick={() => setActiveTab('assign-rider')}>
+                                    Back
+                                </button>
                             </div>
                         </div>
                     )}
