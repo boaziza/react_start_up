@@ -5,19 +5,10 @@ import '../styles/app.css'
 export default function DeliveriesPage() {
     const navigate = useNavigate()
     const user = JSON.parse(localStorage.getItem('user') || '{}')
-    const [deliveries, setDeliveries] = useState([])
-    const [activeFilter, setActiveFilter] = useState('Successful')
-    const [sortBy, setSortBy]             = useState('Most Recent')
 
-    // ── Sidebar counts: replace each value with counts from your backend ──
-    const counts = {
-        paid:       12,   // e.g. data.filter(d => d.payment_status === 'paid').length
-        unpaid:     8,    // e.g. data.filter(d => d.payment_status === 'unpaid').length
-        pending:    0,
-        successful: 0,
-        failed:     12,
-    }
-    // ─────────────────────────────────────────────────────────────────────
+    const [deliveries, setDeliveries] = useState([])
+    const [activeFilter, setActiveFilter] = useState('Paid')
+    const [search, setSearch] = useState('')
 
     useEffect(() => {
         fetch('http://localhost:4000/api/deliveries')
@@ -25,9 +16,33 @@ export default function DeliveriesPage() {
                 if (!res.ok) throw new Error('Deliveries not found')
                 return res.json()
             })
-            .then(data => { setDeliveries(data) })
+            .then(data => setDeliveries(data))
             .catch(err => console.error('Failed to load deliveries:', err))
     }, [])
+
+    // counts from real status column + payment_status
+    const counts = {
+        paid:       deliveries.filter(d => d.status === 'unassigned' && d.payment_status === true).length,
+        unpaid:     deliveries.filter(d => d.status === 'unassigned' && d.payment_status === false).length,
+        pending:    deliveries.filter(d => d.status === 'pending').length,
+        successful: deliveries.filter(d => d.status === 'successful').length,
+        failed:     deliveries.filter(d => d.status === 'failed').length,
+    }
+
+    const filtered = deliveries.filter(d => {
+        const matchesFilter =
+            activeFilter === 'Paid'       ? (d.status === 'unassigned' && d.payment_status === true)  :
+            activeFilter === 'Unpaid'     ? (d.status === 'unassigned' && d.payment_status === false) :
+            activeFilter === 'Pending'    ? d.status === 'pending'    :
+            activeFilter === 'Successful' ? d.status === 'successful' :
+            activeFilter === 'Failed'     ? d.status === 'failed'     : true
+
+        const matchesSearch =
+            d.package_code?.toLowerCase().includes(search.toLowerCase()) ||
+            d.patient_name?.toLowerCase().includes(search.toLowerCase())
+
+        return matchesFilter && matchesSearch
+    })
 
     return (
         <div className="vp-page">
@@ -40,7 +55,7 @@ export default function DeliveriesPage() {
                     <a className="vp-nav-link" onClick={() => navigate('/overview')}>Overview</a>
                     <a className="vp-nav-link active">Deliveries</a>
                     <a className="vp-nav-link" onClick={() => navigate('/patients')}>Patients</a>
-                    <a className="vp-nav-link" onClick={() => navigate('/DispatchRiders')}>Dispatch Riders</a>
+                    <a className="vp-nav-link" onClick={() => navigate('/dispatchRiders')}>Dispatch Riders</a>
                     <a className="vp-nav-link" onClick={() => navigate('/admin')}>Admin</a>
                 </div>
 
@@ -55,7 +70,7 @@ export default function DeliveriesPage() {
             <div className="del-toolbar">
                 <div className="del-sort">
                     <span>Sort by</span>
-                    <select value={sortBy} onChange={e => setSortBy(e.target.value)}>
+                    <select>
                         <option>Most Recent</option>
                         <option>Oldest</option>
                         <option>Patient Name</option>
@@ -66,6 +81,8 @@ export default function DeliveriesPage() {
                     <input
                         className="del-search"
                         placeholder="Search by package code"
+                        value={search}
+                        onChange={e => setSearch(e.target.value)}
                     />
                 </div>
             </div>
@@ -83,7 +100,7 @@ export default function DeliveriesPage() {
                         onClick={() => setActiveFilter('Paid')}
                     >
                         <span>Paid</span>
-                        <span className="del-badge del-badge-blue">{counts.paid}</span>
+                        {counts.paid > 0 && <span className="del-badge del-badge-blue">{counts.paid}</span>}
                     </div>
 
                     <div
@@ -91,7 +108,7 @@ export default function DeliveriesPage() {
                         onClick={() => setActiveFilter('Unpaid')}
                     >
                         <span>Unpaid</span>
-                        <span className="del-badge del-badge-red">{counts.unpaid}</span>
+                        {counts.unpaid > 0 && <span className="del-badge del-badge-red">{counts.unpaid}</span>}
                     </div>
 
                     <p className="del-sidebar-group">Assigned Deliveries</p>
@@ -101,6 +118,7 @@ export default function DeliveriesPage() {
                         onClick={() => setActiveFilter('Pending')}
                     >
                         <span>Pending</span>
+                        {counts.pending > 0 && <span className="del-badge del-badge-blue">{counts.pending}</span>}
                     </div>
 
                     <div
@@ -108,6 +126,7 @@ export default function DeliveriesPage() {
                         onClick={() => setActiveFilter('Successful')}
                     >
                         <span>Successful</span>
+                        {counts.successful > 0 && <span className="del-badge del-badge-blue">{counts.successful}</span>}
                     </div>
 
                     <div
@@ -115,7 +134,7 @@ export default function DeliveriesPage() {
                         onClick={() => setActiveFilter('Failed')}
                     >
                         <span>Failed</span>
-                        <span className="del-badge del-badge-red">{counts.failed}</span>
+                        {counts.failed > 0 && <span className="del-badge del-badge-red">{counts.failed}</span>}
                     </div>
 
                 </div>
@@ -134,16 +153,15 @@ export default function DeliveriesPage() {
                             </tr>
                         </thead>
                         <tbody>
-                            {deliveries.length === 0 && (
+                            {filtered.length === 0 && (
                                 <tr>
                                     <td colSpan={6} className="del-empty">
                                         No deliveries found.
                                     </td>
                                 </tr>
                             )}
-                            {deliveries.map(d => (
+                            {filtered.map(d => (
                                 <tr key={d.id}>
-                                    {/* ── Replace field names to match your backend columns ── */}
                                     <td>{d.package_code}</td>
                                     <td>{d.date}</td>
                                     <td>{d.patient_name}</td>

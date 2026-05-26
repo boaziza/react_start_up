@@ -99,7 +99,7 @@ export default function ViewPatient() {
                         Patient's next delivery date is<br />
                         <strong>{new Date(form.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}, in {form.days_supply} day(s)</strong>
                     </p>
-                    <button className="vp-assign-btn" onClick={() => navigate(`/patients/ViewPatient/${id}/assignpackage`)}>Assign Package to Patient</button>
+                    <button className="vp-assign-btn" onClick={() => navigate(`/patients/ViewPatient/${id}/AssignPackage`)}>Assign Package to Patient</button>
                 </div>
             </div>
 

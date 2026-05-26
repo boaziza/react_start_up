@@ -85,7 +85,7 @@ export default function RidersPage() {
                                     <td>{r.name}</td>
                                     <td>{r.phone_number}</td>
                                     <td>{r.area}</td>
-                                    <td>{r.number_of_deliveries}</td>
+                                    <td>{r.delivery_count}</td>
                                     <td>{r.status}</td>
                                     <td>
                                         <button

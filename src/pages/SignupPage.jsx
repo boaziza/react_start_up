@@ -5,28 +5,30 @@ import '../styles/LoginPage.css'
 export default function SignupPage() {
     const navigate = useNavigate();
     const [showPassword, setShowPassword] = useState(false)
-    const [rememberMe, setRememberMe] = useState(false)
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [username, setUsername] = useState('')
+    const [error, setError] = useState('')
+    const [loading, setLoading] = useState(false)
 
     async function handleSubmit(e) {
-
-        const res = await fetch('http://localhost:4000/api/user/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                username,
-                email,
-                password
+        e.preventDefault()
+        setError('')
+        setLoading(true)
+        try {
+            const res = await fetch('http://localhost:4000/api/user/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, email, password }),
             })
-        })
-
-        const data = await res.json()
-
-        console.log('Sign Up:', data)
+            const data = await res.json()
+            if (!res.ok) { setError(data.error || 'Sign up failed'); return }
+            navigate('/login')
+        } catch {
+            setError('Could not connect to server')
+        } finally {
+            setLoading(false)
+        }
     }
 
     return (
@@ -82,7 +84,10 @@ export default function SignupPage() {
                         </label>
                     </div>
 
-                    <button type="submit" className="signup-btn">Sign Up</button>
+                    {error && <p style={{ color: '#ef4444', fontSize: 13, marginBottom: 10 }}>{error}</p>}
+                    <button type="submit" className="signup-btn" disabled={loading}>
+                        {loading ? 'Creating account...' : 'Sign Up'}
+                    </button>
                     <div className="row">
                         <span>Don't have an account?</span>
                         <a href="#" onClick={() => navigate('/login')}>Log In</a>
