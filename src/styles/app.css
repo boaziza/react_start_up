@@ -680,3 +680,96 @@
     border-color: #2563eb;
     font-weight: 600;
 }
+
+/* =============================================
+   RIDER SIDE PANEL
+   ============================================= */
+
+.rider-row-active { background: #eff6ff; }
+
+.rider-panel {
+    width: 320px;
+    flex-shrink: 0;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    height: fit-content;
+    overflow: hidden;
+}
+
+.rider-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.rider-panel-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #111827;
+    margin: 0;
+}
+
+.rider-panel-close {
+    background: none;
+    border: none;
+    font-size: 16px;
+    color: #9ca3af;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+.rider-panel-close:hover { background: #f3f4f6; color: #374151; }
+
+.rider-panel-info {
+    padding: 12px 20px;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.rider-panel-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    color: #374151;
+}
+
+.rider-panel-label {
+    font-size: 11px;
+    color: #9ca3af;
+    font-weight: 500;
+    display: block;
+}
+
+.rider-panel-section {
+    font-size: 11px;
+    font-weight: 700;
+    color: #374151;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 14px 20px 8px;
+}
+
+.rider-panel-deliveries {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 0 16px 16px;
+    max-height: 340px;
+    overflow-y: auto;
+}
+
+.rider-panel-delivery-card {
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 13px;
+    color: #374151;
+}

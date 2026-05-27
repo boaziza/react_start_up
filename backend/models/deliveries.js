@@ -19,24 +19,19 @@ export async function getDeliveryById(id) {
     const { rows } = await pool.query(`
         SELECT
             deliveries.*,
-            COALESCE(
-                json_agg(
-                    json_build_object(
-                        'id',             riders.id,
-                        'name',      riders.name,
-                        'area',    riders.area,
-                        'phone_number',      riders.phone_number,
-                        'status',      riders.status
-                    )
-                ) FILTER (WHERE deliveries.id IS NOT NULL),
-                '[]'
-            ) AS Rider
+            patients.name         AS patient_name,
+            patients.phone_number AS patient_phone,
+            patients.hospital_id  AS patient_hospital_id,
+            patients.location     AS patient_location,
+            riders.name           AS rider_name,
+            riders.area           AS rider_area,
+            riders.phone_number   AS rider_phone
         FROM deliveries
-        LEFT JOIN riders ON riders.id = deliveries.rider_id
+        LEFT JOIN patients ON patients.id = deliveries.patient_id
+        LEFT JOIN riders   ON riders.id   = deliveries.rider_id
         WHERE deliveries.id = $1
-        GROUP BY deliveries.id
     `, [id])
-  return rows[0];
+    return rows[0];
 }
 
 export async function assignRiderToDelivery(deliveryId, riderId) {

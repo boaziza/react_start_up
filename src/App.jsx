@@ -5,6 +5,7 @@ import PatientsPage from './pages/PatientsPage'
 import ViewPatient from './pages/viewPatient'
 import AssignPackage from './pages/AssignPackage'
 import DeliveriesPage from './pages/DeliveriesPage'
+import ViewDeliveryPage from './pages/ViewDeliveryPage'
 import RidersPage from './pages/RidersPage'
 
 function ProtectedRoute({ children }) {
@@ -32,6 +33,9 @@ export default function App() {
         } />
         <Route path="/deliveries" element={
           <ProtectedRoute><DeliveriesPage /></ProtectedRoute>
+        } />
+        <Route path="/deliveries/:id" element={
+          <ProtectedRoute><ViewDeliveryPage /></ProtectedRoute>
         } />
         <Route path="/dispatchRiders" element={
           <ProtectedRoute><RidersPage /></ProtectedRoute>

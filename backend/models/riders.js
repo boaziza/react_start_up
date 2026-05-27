@@ -14,8 +14,29 @@ export async function getAllRiders() {
 }
 
 export async function getRiderById(id) {
-  const { rows } = await pool.query('SELECT * FROM riders WHERE id = $1', [id]);
-  return rows[0];
+    const { rows } = await pool.query(`
+        SELECT
+            riders.*,
+            COALESCE(
+                json_agg(
+                    json_build_object(
+                        'id',           deliveries.id,
+                        'package_code', deliveries.package_code,
+                        'drug_name',    deliveries.drug_name,
+                        'date',         deliveries.date,
+                        'status',       deliveries.status,
+                        'patient_name', patients.name
+                    )
+                ) FILTER (WHERE deliveries.id IS NOT NULL),
+                '[]'
+            ) AS deliveries
+        FROM riders
+        LEFT JOIN deliveries ON deliveries.rider_id = riders.id
+        LEFT JOIN patients   ON patients.id = deliveries.patient_id
+        WHERE riders.id = $1
+        GROUP BY riders.id
+    `, [id]);
+    return rows[0];
 }
 
 export async function createRider({ name, area, phone_number }) {
