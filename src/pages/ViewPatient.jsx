@@ -41,7 +41,8 @@ export default function ViewPatient() {
             gender: data.gender || '',
             phone: data.phone_number || '',
             email: data.email || '',
-            next_delivery_date: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) || '',
+            next_delivery_date: data.next_delivery_date || '',
+            default_drug_period: data.default_drug_period || '',
             deliveries: data.deliveries || [],
             })
         })
@@ -87,11 +88,25 @@ export default function ViewPatient() {
                     <span>View Patient</span>
                 </div>
                 <div className="vp-subheader-right">
-                    <p className="vp-delivery-note">
-                        Patient's next delivery date is<br />
-                        <strong>{new Date(form.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}, in {form.drug_period} day(s)</strong>
-                    </p>
-                    <button className="vp-assign-btn" onClick={() => navigate(`/patients/ViewPatient/${id}/AssignPackage`)}>Assign Package to Patient</button>
+                    {form.next_delivery_date ? (
+                        <p className="vp-delivery-note">
+                            Patient's next delivery date is<br />
+                            <strong>{new Date(form.next_delivery_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</strong>
+                        </p>
+                    ) : (
+                        <p className="vp-delivery-note" style={{ color: '#ef4444' }}>
+                            Next delivery date not set.<br />
+                            <strong>Set it in Delivery Information before assigning.</strong>
+                        </p>
+                    )}
+                    <button
+                        className="vp-assign-btn"
+                        disabled={!form.next_delivery_date}
+                        onClick={() => navigate(`/patients/ViewPatient/${id}/AssignPackage`)}
+                        style={!form.next_delivery_date ? { opacity: 0.4, cursor: 'not-allowed' } : {}}
+                    >
+                        Assign Package to Patient
+                    </button>
                 </div>
             </div>
 

@@ -35,6 +35,19 @@ export async function getPatientById(id) {
 }
 
 
+export async function updatePatient(id, fields) {
+    const { next_delivery_date, default_drug_period } = fields
+    const { rows } = await pool.query(
+        `UPDATE patients
+         SET next_delivery_date  = COALESCE($1, next_delivery_date),
+             default_drug_period = COALESCE($2, default_drug_period)
+         WHERE id = $3
+         RETURNING *`,
+        [next_delivery_date ?? null, default_drug_period ?? null, id]
+    )
+    return rows[0]
+}
+
 export async function createPatient({ name, hospital_id, phone_number }) {
 
     const existingPatient = await getPatientById(id);

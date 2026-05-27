@@ -11,26 +11,40 @@ export default function AssignPackage() {
 
     const [activeTab, setActiveTab] = useState('drug-cycle')
     const [cycleChoice, setCycleChoice] = useState('same')
-    const [newDeliveryDate, setNewDeliveryDate] = useState('')
     const [newDrugPeriod, setNewDrugPeriod] = useState('')
-
-    const calculatedNextDate = newDeliveryDate && newDrugPeriod
-        ? new Date(new Date(newDeliveryDate).setDate(new Date(newDeliveryDate).getDate() + Number(newDrugPeriod)))
-            .toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
-        : ''
+    const [savingCycle, setSavingCycle] = useState(false)
 
     const [form, setForm] = useState({
         hospital_id: '',
         first_name: '',
         phone: '',
-        drug_period: '',
-        date: '',
         area: '',
-        next_date: '',
+        next_delivery_date: '',
+        default_drug_period: '',
         delivery_id: '',
         package_code: '',
     })
     const [loading, setLoading] = useState(true)
+
+    function addDays(dateStr, days) {
+        const d = new Date(dateStr)
+        d.setDate(d.getDate() + Number(days))
+        return d
+    }
+
+    const sameNextDate = form.next_delivery_date && form.default_drug_period
+        ? addDays(form.next_delivery_date, form.default_drug_period)
+            .toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
+        : ''
+
+    const calculatedNextDate = form.next_delivery_date && newDrugPeriod
+        ? addDays(form.next_delivery_date, newDrugPeriod)
+            .toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
+        : ''
+
+    const deliveryDateFormatted = form.next_delivery_date
+        ? new Date(form.next_delivery_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
+        : '—'
 
     // rider states
     const [riders, setRiders] = useState([])
@@ -53,16 +67,14 @@ export default function AssignPackage() {
         fetch(`http://localhost:4000/api/patient/${id}`)
             .then(res => { if (!res.ok) throw new Error(); return res.json() })
             .then(data => setForm({
-                hospital_id:  data.hospital_id || '',
-                first_name:   data.name || '',
-                phone:        data.phone_number || '',
+                hospital_id:         data.hospital_id || '',
+                first_name:          data.name || '',
+                phone:               data.phone_number || '',
+                area:                data.location || '',
+                next_delivery_date:  data.next_delivery_date || '',
                 default_drug_period: data.default_drug_period || '',
-                drug_period:  data.deliveries[0]?.drug_period || '',
-                date:         data.deliveries[0]?.date || '',
-                area:         data.deliveries[0]?.area || '',
-                next_date:    data.deliveries[0]?.next_date || '',
-                delivery_id:  data.deliveries[0]?.id || '',
-                package_code: data.deliveries[0]?.package_code || '',
+                delivery_id:         data.deliveries[0]?.id || '',
+                package_code:        data.deliveries[0]?.package_code || '',
             }))
             .catch(err => console.error('Failed to load patient:', err))
             .finally(() => setLoading(false))
@@ -80,11 +92,35 @@ export default function AssignPackage() {
         if (activeTab !== 'scan-package') stopScanner()
     }, [activeTab])
 
-    const nextDate = form.default_drug_period && form.date
-        ? new Date(new Date(form.date).setDate(new Date(form.date).getDate() + Number(form.default_drug_period)))
-            .toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
-        : ''
-    console.log('Next delivery date:', nextDate)
+    async function handleDrugCycleNext() {
+        const period = cycleChoice === 'same' ? form.default_drug_period : newDrugPeriod
+        if (!form.next_delivery_date || !period) return
+        setSavingCycle(true)
+
+        const newNextDate = addDays(form.next_delivery_date, period).toISOString().split('T')[0]
+        const patientUpdate = { next_delivery_date: newNextDate }
+        if (cycleChoice === 'new') patientUpdate.default_drug_period = Number(newDrugPeriod)
+
+        try {
+            await fetch(`http://localhost:4000/api/patient/${id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(patientUpdate),
+            })
+            if (form.delivery_id) {
+                await fetch(`http://localhost:4000/api/deliveries/${form.delivery_id}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ date: form.next_delivery_date, drug_period: Number(period) }),
+                })
+            }
+            setActiveTab('assign-rider')
+        } catch (err) {
+            console.error('Failed to save drug cycle:', err)
+        } finally {
+            setSavingCycle(false)
+        }
+    }
 
     const filteredRiders = riders.filter(r => {
         if (riderFilter === 'All')        return true
@@ -94,17 +130,8 @@ export default function AssignPackage() {
     })
 
     function handleAssignRider() {
-        if (!selectedRider || !form.delivery_id) return
-        setAssigning(true)
-        fetch(`http://localhost:4000/api/deliveries/${form.delivery_id}/assign-rider`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ riderId: selectedRider }),
-        })
-            .then(res => { if (!res.ok) throw new Error('Failed to assign rider'); return res.json() })
-            .then(() => setActiveTab('scan-package'))
-            .catch(err => console.error(err))
-            .finally(() => setAssigning(false))
+        if (!selectedRider) return
+        setActiveTab('scan-package')
     }
 
     function validateCode(code) {
@@ -198,7 +225,7 @@ export default function AssignPackage() {
                     <div className="vp-sidebar-item"><strong>Name:</strong> {form.first_name}</div>
                     <div className="vp-sidebar-item"><strong>Phone:</strong> {form.phone}</div>
                     <div className="vp-sidebar-item"><strong>Area:</strong> {form.area}</div>
-                    <div className="vp-sidebar-item"><strong>Next Delivery:</strong> {form.next_date}</div>
+                    <div className="vp-sidebar-item"><strong>Next Delivery:</strong> {deliveryDateFormatted}</div>
                 </div>
 
                 {/* Main panel */}
@@ -221,7 +248,10 @@ export default function AssignPackage() {
                     {activeTab === 'drug-cycle' && (
                         <div className="vp-tab-content">
                             <div className="vp-form-header">
-                                <h2>{form.first_name} has a drug cycle of <strong>{form.drug_period}</strong> days.</h2>
+                                <div>
+                                    <h2>Set drug cycle for <strong>{form.first_name}</strong></h2>
+                                    <p>Delivery date: <strong>{deliveryDateFormatted}</strong></p>
+                                </div>
                             </div>
 
                             <div className="vp-form">
@@ -230,13 +260,14 @@ export default function AssignPackage() {
                                         <input type="radio" name="cycle" value="same"
                                             checked={cycleChoice === 'same'}
                                             onChange={() => setCycleChoice('same')} />
-                                        Same as initial drug cycle
+                                        Same as initial drug cycle ({form.default_drug_period} days)
                                     </label>
                                 </div>
 
                                 {cycleChoice === 'same' && (
                                     <div className="vp-cycle-subtext">
-                                        <p>Deliver drug on <strong>{form.date}</strong> &amp; set next delivery date to <strong>{nextDate}</strong></p>
+                                        <p>Drug period: <strong>{form.default_drug_period} days</strong></p>
+                                        <p style={{ marginTop: 6 }}>Next delivery date: <strong>{sameNextDate || '—'}</strong></p>
                                     </div>
                                 )}
 
@@ -251,24 +282,14 @@ export default function AssignPackage() {
 
                                 {cycleChoice === 'new' && (
                                     <div className="vp-cycle-subtext">
-                                        <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-                                            <div className="vp-field half">
-                                                <label>Delivery Date</label>
-                                                <input
-                                                    type="date"
-                                                    value={newDeliveryDate}
-                                                    onChange={e => setNewDeliveryDate(e.target.value)}
-                                                />
-                                            </div>
-                                            <div className="vp-field half">
-                                                <label>Drug Period (days)</label>
-                                                <input
-                                                    type="number"
-                                                    placeholder="e.g. 30"
-                                                    value={newDrugPeriod}
-                                                    onChange={e => setNewDrugPeriod(e.target.value)}
-                                                />
-                                            </div>
+                                        <div className="vp-field half">
+                                            <label>New Drug Period (days)</label>
+                                            <input
+                                                type="number"
+                                                placeholder="e.g. 30"
+                                                value={newDrugPeriod}
+                                                onChange={e => setNewDrugPeriod(e.target.value)}
+                                            />
                                         </div>
                                         {calculatedNextDate && (
                                             <p style={{ marginTop: 12, fontSize: 14, color: '#374151' }}>
@@ -279,8 +300,12 @@ export default function AssignPackage() {
                                 )}
 
                                 <div className="vp-form-footer">
-                                    <button className="vp-save-btn" onClick={() => setActiveTab('assign-rider')}>
-                                        Next
+                                    <button
+                                        className="vp-save-btn"
+                                        disabled={savingCycle || (cycleChoice === 'new' && !newDrugPeriod)}
+                                        onClick={handleDrugCycleNext}
+                                    >
+                                        {savingCycle ? 'Saving...' : 'Next'}
                                     </button>
                                 </div>
                             </div>

@@ -54,6 +54,14 @@ export async function confirmDelivery(deliveryId) {
     return rows[0];
 }
 
+export async function updateDelivery(id, { date, drug_period }) {
+    const { rows } = await pool.query(
+        `UPDATE deliveries SET date = $1, drug_period = $2 WHERE id = $3 RETURNING *`,
+        [date, drug_period, id]
+    )
+    return rows[0]
+}
+
 export async function createDelivery({ patient_id, drug_name, drug_period }) {
 
     const existingDelivery = await getDeliveryById(id);
