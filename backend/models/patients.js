@@ -36,14 +36,36 @@ export async function getPatientById(id) {
 
 
 export async function updatePatient(id, fields) {
-    const { next_delivery_date, default_drug_period } = fields
+    const {
+        next_delivery_date,
+        default_drug_period,
+        name,
+        gender,
+        phone_number,
+        email,
+        hospital_id,
+    } = fields
     const { rows } = await pool.query(
         `UPDATE patients
          SET next_delivery_date  = COALESCE($1, next_delivery_date),
-             default_drug_period = COALESCE($2, default_drug_period)
-         WHERE id = $3
+             default_drug_period = COALESCE($2, default_drug_period),
+             name                = COALESCE($3, name),
+             gender              = COALESCE($4, gender),
+             phone_number        = COALESCE($5, phone_number),
+             email               = COALESCE($6, email),
+             hospital_id         = COALESCE($7, hospital_id)
+         WHERE id = $8
          RETURNING *`,
-        [next_delivery_date ?? null, default_drug_period ?? null, id]
+        [
+            next_delivery_date ?? null,
+            default_drug_period ?? null,
+            name ?? null,
+            gender ?? null,
+            phone_number ?? null,
+            email ?? null,
+            hospital_id ?? null,
+            id,
+        ]
     )
     return rows[0]
 }

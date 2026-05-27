@@ -422,28 +422,192 @@
    SCAN PAGE (QR + CODE INPUT)
    ============================================= */
 
-.as-field { display: flex; align-items: flex-start; gap: 40px; }
-.as-field-qr { flex-shrink: 0; }
-.qr-code { width: 200px; height: 200px; object-fit: contain; }
 
-.as-field-code {
+.as-or {
+    font-size: 13px;
+    font-weight: 600;
+    color: #9ca3af;
+    flex-shrink: 0;
+}
+
+
+.as-scan-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 32px;
+}
+
+.as-scan-btn {
+    background: #2563eb;
+    color: white;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+.as-scan-btn:hover { background: #1d4ed8; }
+
+.as-submit-btn {
+    background: white;
+    color: #374151;
+    border: 1px solid #d1d5db;
+    padding: 10px 24px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+.as-submit-btn:hover { background: #f3f4f6; }
+
+.vp-tab-check {
+    color: #16a34a;
+    margin-right: 6px;
+    font-size: 12px;
+}
+
+/* confirmed code box */
+.as-code-confirmed {
     display: flex;
     flex-direction: column;
     gap: 8px;
+    margin-bottom: 8px;
+}
+.as-code-label {
+    font-size: 12px;
+    color: #9ca3af;
+    font-weight: 500;
+}
+.as-code-box {
+    width: 260px;
+    padding: 12px 16px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #111827;
+    background: #f9fafb;
+    letter-spacing: 1px;
+}
+.as-code-remove {
+    background: none;
+    border: none;
+    color: #ef4444;
+    font-size: 13px;
+    cursor: pointer;
+    padding: 0;
+    width: fit-content;
+}
+.as-code-remove:hover { text-decoration: underline; }
+
+/* scanning status */
+.as-scan-status {
+    font-size: 13px;
+    color: #6b7280;
+    margin-top: 12px;
+    text-align: center;
+}
+
+/* confirmation modal */
+.as-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    display: flex;
+    align-items: center;
     justify-content: center;
+    z-index: 100;
+}
+.as-modal {
+    background: white;
+    border-radius: 10px;
+    padding: 28px 32px;
+    width: 380px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+}
+.as-modal-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #111827;
+    margin: 0 0 12px;
+}
+.as-modal-body {
+    font-size: 14px;
+    color: #6b7280;
+    margin-bottom: 24px;
+    line-height: 1.6;
+}
+.as-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+/* scan states */
+.as-qr-idle {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    min-height: 240px;
+}
+
+.as-scan-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    flex: 1;
+    min-height: 240px;
+}
+
+.as-scan-box {
+    width: 280px;
+    height: 280px;
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+    background: #000;
+}
+
+.as-scan-line {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: #2563eb;
+    box-shadow: 0 0 8px #2563eb;
+    animation: scan-sweep 1.8s linear infinite;
+}
+
+@keyframes scan-sweep {
+    0%   { top: 0; }
+    100% { top: 100%; }
+}
+
+.as-manual-state {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    flex: 1;
+    min-height: 240px;
     padding-top: 12px;
 }
-.as-field-code h2 { font-size: 15px; color: #374151; font-weight: 500; }
-.as-field-code input {
-    margin-top: 8px;
+
+.as-manual-input {
     padding: 10px 14px;
     border: 1px solid #d1d5db;
     border-radius: 6px;
     font-size: 14px;
     outline: none;
-    width: 240px;
+    width: 280px;
 }
-.as-field-code input:focus { border-color: #2563eb; }
+.as-manual-input:focus { border-color: #2563eb; }
 
 /* =============================================
    DELIVERIES PAGE

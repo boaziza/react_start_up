@@ -21,6 +21,8 @@ export default function ViewPatient() {
         deliveries: [],
     })
     const [loading, setLoading] = useState(true)
+    const [savingPatient, setSavingPatient] = useState(false)
+    const [savingDelivery, setSavingDelivery] = useState(false)
 
     useEffect(() => {
         if (!id) return
@@ -56,6 +58,47 @@ export default function ViewPatient() {
 
     function handleChange(e) {
         setForm({ ...form, [e.target.name]: e.target.value })
+    }
+
+    async function handleSavePatient() {
+        setSavingPatient(true)
+        try {
+            await fetch(`http://localhost:4000/api/patient/${id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    hospital_id:  form.hospital_id,
+                    name:         form.first_name,
+                    gender:       form.gender,
+                    phone_number: form.phone,
+                    email:        form.email,
+                }),
+            })
+            setEditingPatient(false)
+        } catch (err) {
+            console.error('Failed to save patient:', err)
+        } finally {
+            setSavingPatient(false)
+        }
+    }
+
+    async function handleSaveDelivery() {
+        setSavingDelivery(true)
+        try {
+            await fetch(`http://localhost:4000/api/patient/${id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    next_delivery_date:  form.next_delivery_date || null,
+                    default_drug_period: form.default_drug_period ? Number(form.default_drug_period) : null,
+                }),
+            })
+            setEditingDelivery(false)
+        } catch (err) {
+            console.error('Failed to save delivery info:', err)
+        } finally {
+            setSavingDelivery(false)
+        }
     }
 
     return (
@@ -175,14 +218,9 @@ export default function ViewPatient() {
                                         <input readOnly={!editingPatient} name="hospital_id" value={form.hospital_id} onChange={handleChange} />
                                     </div>
 
-                                    <div className="vp-field half">
-                                        <label>First Name</label>
+                                    <div className="vp-field full">
+                                        <label>Full Name</label>
                                         <input readOnly={!editingPatient} name="first_name" value={form.first_name} onChange={handleChange} />
-                                    </div>
-
-                                    <div className="vp-field half">
-                                        <label>Last Name</label>
-                                        <input readOnly={!editingPatient} name="last_name" value={form.last_name} onChange={handleChange} />
                                     </div>
 
                                     <div className="vp-field half">
@@ -202,9 +240,9 @@ export default function ViewPatient() {
                                         <label>Email Address</label>
                                         <input readOnly={!editingPatient} name="email" value={form.email} onChange={handleChange} />
                                     </div>
-                                    <button className="vp-save-btn" disabled={!editingPatient} onClick={() => setEditingPatient(false)}>
-                                        <span>Save</span>
-                                    </button>                                
+                                    <button className="vp-save-btn" disabled={!editingPatient || savingPatient} onClick={handleSavePatient}>
+                                        <span>{savingPatient ? 'Saving...' : 'Save'}</span>
+                                    </button>
                                 </div>
                             </div>
                         )}
@@ -245,8 +283,8 @@ export default function ViewPatient() {
                                         </select>
                                     </div>
                                 </div>
-                                <button className="vp-save-btn" disabled={!editingDelivery} onClick={() => setEditingDelivery(false)}>
-                                    <span>Save</span>
+                                <button className="vp-save-btn" disabled={!editingDelivery || savingDelivery} onClick={handleSaveDelivery}>
+                                    <span>{savingDelivery ? 'Saving...' : 'Save'}</span>
                                 </button>
                             </div>
                             

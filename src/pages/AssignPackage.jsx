@@ -50,12 +50,14 @@ export default function AssignPackage() {
     const [riders, setRiders] = useState([])
     const [selectedRider, setSelectedRider] = useState(null)
     const [riderFilter, setRiderFilter] = useState('All')
-    const [assigning, setAssigning] = useState(false)
 
     // scan states
+    const [scanMode, setScanMode] = useState('idle') // idle | scanning | manual | verified
     const [manualCode, setManualCode] = useState('')
     const [scanError, setScanError] = useState('')
     const [scanSuccess, setScanSuccess] = useState(false)
+    const [verifiedCode, setVerifiedCode] = useState('')
+    const [showModal, setShowModal] = useState(false)
     const [confirming, setConfirming] = useState(false)
     const [scanning, setScanning] = useState(false)
     const videoRef = useRef(null)
@@ -135,18 +137,18 @@ export default function AssignPackage() {
     }
 
     function validateCode(code) {
-        if (!form.package_code) { setScanError('No package code on file for this delivery'); return }
-        if (code.trim() === form.package_code.trim()) {
-            setScanError('')
-            setScanSuccess(true)
-        } else {
-            setScanError(`Code "${code}" does not match package code`)
-        }
+        if (!code.trim()) { setScanError('Please enter a code'); return }
+        setScanError('')
+        setScanSuccess(true)
+        setVerifiedCode(code.trim())
+        setScanMode('verified')
+        stopScanner()
     }
 
     async function startScanner() {
         setScanError('')
         setScanning(true)
+        setScanMode('scanning')
         codeReaderRef.current = new BrowserQRCodeReader()
         try {
             await codeReaderRef.current.decodeFromVideoDevice(
@@ -171,18 +173,36 @@ export default function AssignPackage() {
             codeReaderRef.current = null
         }
         setScanning(false)
+        if (scanMode === 'scanning') setScanMode('idle')
     }
 
-    function handleConfirm() {
-        if (!form.delivery_id) return
+    async function handleConfirm() {
+        if (!form.delivery_id || !selectedRider) return
         setConfirming(true)
-        fetch(`http://localhost:4000/api/deliveries/${form.delivery_id}/confirm`, {
-            method: 'PATCH',
-        })
-            .then(res => { if (!res.ok) throw new Error(); return res.json() })
-            .then(() => navigate('/deliveries'))
-            .catch(() => setScanError('Failed to confirm. Try again.'))
-            .finally(() => setConfirming(false))
+        setShowModal(false)
+        try {
+            await fetch(`http://localhost:4000/api/deliveries/${form.delivery_id}/assign-rider`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ riderId: selectedRider }),
+            }).then(res => { if (!res.ok) throw new Error('Failed to assign rider') })
+
+            await fetch(`http://localhost:4000/api/deliveries/${form.delivery_id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ package_code: verifiedCode }),
+            }).then(res => { if (!res.ok) throw new Error('Failed to save package code') })
+
+            await fetch(`http://localhost:4000/api/deliveries/${form.delivery_id}/confirm`, {
+                method: 'PATCH',
+            }).then(res => { if (!res.ok) throw new Error('Failed to confirm') })
+
+            navigate('/deliveries')
+        } catch (err) {
+            setScanError(err.message || 'Failed to confirm. Try again.')
+        } finally {
+            setConfirming(false)
+        }
     }
 
     return (
@@ -234,9 +254,11 @@ export default function AssignPackage() {
                     {/* Tabs — display only, Next button advances */}
                     <div className="vp-tabs">
                         <span className={`vp-tab ${activeTab === 'drug-cycle' ? 'active' : ''}`}>
+                            {(activeTab === 'assign-rider' || activeTab === 'scan-package') && <span className="vp-tab-check">✓</span>}
                             Set Drug Cycle/Length
                         </span>
                         <span className={`vp-tab ${activeTab === 'assign-rider' ? 'active' : ''}`}>
+                            {activeTab === 'scan-package' && <span className="vp-tab-check">✓</span>}
                             Assign Dispatch Rider
                         </span>
                         <span className={`vp-tab ${activeTab === 'scan-package' ? 'active' : ''}`}>
@@ -363,10 +385,10 @@ export default function AssignPackage() {
                                     Back
                                 </button>
                                 <button className="vp-save-btn"
-                                    disabled={!selectedRider || assigning}
+                                    disabled={!selectedRider}
                                     onClick={handleAssignRider}
                                 >
-                                    {assigning ? 'Assigning...' : 'Next'}
+                                    Next
                                 </button>
                             </div>
                         </div>
@@ -375,79 +397,110 @@ export default function AssignPackage() {
                     {/* ── Tab 3: Scan Package ── */}
                     {activeTab === 'scan-package' && (
                         <div className="vp-tab-content">
-                            <div className="vp-form-header">
-                                <div>
-                                    <h2>Scan package for <strong>{form.first_name}</strong></h2>
-                                    <p>Package code: <strong>{form.package_code || 'N/A'}</strong></p>
+                            <h2 style={{ fontSize: 15, fontWeight: 600, color: '#111827', marginBottom: 24 }}>
+                                Scan a package to assign it to <strong>{form.first_name}</strong>
+                            </h2>
+
+                            {/* State: idle */}
+                            {scanMode === 'idle' && (
+                                <div className="as-qr-idle">
+                                    <img src={QrCode} alt="QR" style={{ width: 120, height: 120, opacity: 0.2 }} />
+                                </div>
+                            )}
+
+                            {/* State: scanning */}
+                            {scanMode === 'scanning' && (
+                                <div className="as-scan-state">
+                                    <div className="as-scan-box">
+                                        <video ref={videoRef} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 8 }} />
+                                        <div className="as-scan-line" />
+                                    </div>
+                                    <p className="as-scan-status">Scanning Package...</p>
+                                </div>
+                            )}
+
+                            {/* State: manual entry */}
+                            {scanMode === 'manual' && (
+                                <div className="as-manual-state">
+                                    <p style={{ fontSize: 13, color: '#6b7280', marginBottom: 8 }}>
+                                        Trouble scanning QR Code? Enter manually.
+                                    </p>
+                                    <input
+                                        className="as-manual-input"
+                                        type="text"
+                                        placeholder="Enter Code"
+                                        value={manualCode}
+                                        autoFocus
+                                        onChange={e => { setManualCode(e.target.value); setScanError('') }}
+                                        onKeyDown={e => e.key === 'Enter' && validateCode(manualCode)}
+                                    />
+                                    {scanError && <p style={{ color: '#ef4444', fontSize: 12, marginTop: 6 }}>{scanError}</p>}
+                                </div>
+                            )}
+
+                            {/* State: verified */}
+                            {scanMode === 'verified' && (
+                                <div className="as-code-confirmed">
+                                    <p className="as-code-label">Package Code</p>
+                                    <div className="as-code-box">{verifiedCode}</div>
+                                    <button className="as-code-remove" onClick={() => {
+                                        setVerifiedCode(''); setScanSuccess(false)
+                                        setManualCode(''); setScanError(''); setScanMode('idle')
+                                    }}>✕ Remove</button>
+                                </div>
+                            )}
+
+                            {/* Bottom buttons */}
+                            <div className="as-scan-footer">
+                                <div style={{ display: 'flex', gap: 12 }}>
+                                    {scanMode === 'idle' && (
+                                        <>
+                                            <button className="as-scan-btn" onClick={startScanner}>Scan Package</button>
+                                            <button className="as-submit-btn" onClick={() => setScanMode('manual')}>Submit Code</button>
+                                        </>
+                                    )}
+                                    {scanMode === 'scanning' && (
+                                        <button className="as-submit-btn" onClick={stopScanner}>Cancel</button>
+                                    )}
+                                    {scanMode === 'manual' && (
+                                        <>
+                                            <button className="as-scan-btn" onClick={() => validateCode(manualCode)}>Submit Code</button>
+                                            <button className="as-submit-btn" onClick={() => { setScanMode('idle'); setScanError('') }}>Cancel</button>
+                                        </>
+                                    )}
+                                </div>
+                                <div style={{ display: 'flex', gap: 12 }}>
+                                    <button className="vp-back-btn" onClick={() => { stopScanner(); setScanMode('idle'); setActiveTab('assign-rider') }}>
+                                        Back
+                                    </button>
+                                    <button className="vp-save-btn"
+                                        disabled={scanMode !== 'verified' || confirming}
+                                        onClick={() => setShowModal(true)}
+                                    >
+                                        {confirming ? 'Assigning...' : 'Assign Package'}
+                                    </button>
                                 </div>
                             </div>
 
-                            <div className="as-field">
-
-                                {/* Camera scanner */}
-                                <div className="as-field-qr">
-                                    <video ref={videoRef} style={{
-                                        width: 220, height: 220,
-                                        borderRadius: 8,
-                                        border: '2px solid #e5e7eb',
-                                        display: scanning ? 'block' : 'none',
-                                        objectFit: 'cover'
-                                    }} />
-                                    {!scanning && (
-                                        <img src={QrCode} alt="QR Code" className="qr-code" />
-                                    )}
-                                    <div style={{ marginTop: 12 }}>
-                                        {!scanning ? (
-                                            <button className="vp-save-btn" onClick={startScanner}>
-                                                Start Camera
+                            {/* Confirmation modal */}
+                            {showModal && (
+                                <div className="as-modal-overlay">
+                                    <div className="as-modal">
+                                        <h3 className="as-modal-title">Assign Package {verifiedCode}</h3>
+                                        <p className="as-modal-body">
+                                            Are you sure you want to assign package <strong>{verifiedCode}</strong> to <strong>{form.first_name}</strong>?
+                                        </p>
+                                        <div className="as-modal-footer">
+                                            <button className="as-submit-btn" onClick={() => setShowModal(false)}>
+                                                No, Go Back
                                             </button>
-                                        ) : (
-                                            <button className="vp-save-btn" style={{ background: '#ef4444' }} onClick={stopScanner}>
-                                                Stop Camera
-                                            </button>
-                                        )}
-                                    </div>
-                                </div>
-
-                                {/* Manual entry */}
-                                <div className="as-field-code">
-                                    <h2>Trouble scanning?</h2>
-                                    <h2>Enter code manually</h2>
-                                    <input
-                                        type="text"
-                                        placeholder="Enter package code"
-                                        value={manualCode}
-                                        onChange={e => { setManualCode(e.target.value); setScanError(''); setScanSuccess(false) }}
-                                    />
-                                    <button className="vp-save-btn" onClick={() => validateCode(manualCode)}>
-                                        Verify Code
-                                    </button>
-
-                                    {scanError && (
-                                        <p style={{ color: '#ef4444', fontSize: 13, marginTop: 8 }}>{scanError}</p>
-                                    )}
-
-                                    {scanSuccess && (
-                                        <div>
-                                            <p style={{ color: '#16a34a', fontSize: 13, marginTop: 8, marginBottom: 12 }}>
-                                                ✓ Code matched! Ready to confirm.
-                                            </p>
-                                            <button className="vp-save-btn" style={{ background: '#16a34a' }}
-                                                disabled={confirming}
-                                                onClick={handleConfirm}
-                                            >
-                                                {confirming ? 'Confirming...' : 'Confirm Package'}
+                                            <button className="vp-save-btn" onClick={handleConfirm} disabled={confirming}>
+                                                {confirming ? 'Assigning...' : 'Yes, Assign Package'}
                                             </button>
                                         </div>
-                                    )}
+                                    </div>
                                 </div>
-                            </div>
-
-                            <div className="vp-form-footer" style={{ marginTop: 24 }}>
-                                <button className="vp-back-btn" onClick={() => setActiveTab('assign-rider')}>
-                                    Back
-                                </button>
-                            </div>
+                            )}
                         </div>
                     )}
 
