@@ -24,7 +24,7 @@ export default function LoginPage() {
       .then(({ ok, data }) => {
         if (!ok) { setError(data.error || 'Login failed'); return }
         localStorage.setItem('user', JSON.stringify(data.user))
-        navigate('/deliveries')
+        navigate('/overview')
       })
       .catch(() => setError('Could not connect to server'))
       .finally(() => setLoading(false))
