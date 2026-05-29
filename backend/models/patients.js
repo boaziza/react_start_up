@@ -70,16 +70,22 @@ export async function updatePatient(id, fields) {
     return rows[0]
 }
 
-export async function createPatient({ name, hospital_id, phone_number }) {
-
-    const existingPatient = await getPatientById(id);
-    if (existingPatient) {
-        throw new Error('Patient already exists');
-    }
-    
+export async function createPatient({ name, hospital_id, phone_number, gender, email, location, address, default_drug_period, next_delivery_date }) {
     const { rows } = await pool.query(
-        'INSERT INTO users (name, hospital_id, phone_number) VALUES ($1, $2, $3) RETURNING *',
-        [name, hospital_id, phone_number]
+        `INSERT INTO patients (name, hospital_id, phone_number, gender, email, location, address, default_drug_period, next_delivery_date)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+         RETURNING *`,
+        [
+            name,
+            hospital_id,
+            phone_number,
+            gender ?? null,
+            email ?? null,
+            location ?? null,
+            address ?? null,
+            default_drug_period ? Number(default_drug_period) : 30,
+            next_delivery_date ?? null,
+        ]
     );
     return rows[0];
 }

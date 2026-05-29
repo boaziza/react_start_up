@@ -180,7 +180,7 @@ export default function ViewPatient() {
                         {/* Payment status */}
                         <div className="vp-payment-row">
                             <span className="vp-payment-label">Payment Status</span>
-                            <span className={`vp-badge ${form.payment_status ? 'paid' : 'unpaid'}`}>{form.payment_status ? 'Paid' : 'Unpaid'}</span>
+                            <span className="vp-badge paid">Paid</span>
                         </div>
 
                         {/* Tabs */}
