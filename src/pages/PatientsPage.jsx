@@ -121,6 +121,7 @@ function PatientTable({ search, sortBy, page, setPage, perPage }) {
 
     return (
         <>
+            <div className="vp-table-wrap">
             <table className="del-table">
                 <thead>
                     <tr>
@@ -160,6 +161,7 @@ function PatientTable({ search, sortBy, page, setPage, perPage }) {
                     )}
                 </tbody>
             </table>
+            </div>
 
             {/* Pagination */}
             <div className="pat-pagination">

@@ -4,6 +4,7 @@ import userRouter from './api/user.js'
 import patientRouter from './api/patients.js'
 import deliveriesRouter from './api/deliveries.js'
 import ridersRouter from './api/riders.js'
+import packagesRouter from './api/packages.js'
 import cors from 'cors';
 
 const app = express();
@@ -15,6 +16,7 @@ app.use('/api/user', userRouter)
 app.use('/api/patient', patientRouter)
 app.use('/api/deliveries', deliveriesRouter)
 app.use('/api/riders', ridersRouter)
+app.use('/api/packages', packagesRouter)
 
 app.get('/health', (req,res) => {
     res.send('ok');

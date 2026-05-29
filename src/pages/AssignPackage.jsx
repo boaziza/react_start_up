@@ -1,8 +1,27 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { BrowserQRCodeReader } from '@zxing/browser'
+import { useZxing } from 'react-zxing'
 import QrCode from '../components/icons/qrcode.png'
 import '../styles/app.css'
+
+function QrScanner({ onScan, onError }) {
+    const { ref } = useZxing({
+        onDecodeResult(result) { onScan(result.getText()) },
+        onError(err) {
+            if (err?.name === 'AbortError' || err?.message?.includes('already')) return
+            onError()
+        },
+    })
+    return (
+        <div className="as-scan-state">
+            <div className="as-scan-box">
+                <video ref={ref} muted playsInline style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 8 }} />
+                <div className="as-scan-line" />
+            </div>
+            <p className="as-scan-status">Scanning Package...</p>
+        </div>
+    )
+}
 
 export default function AssignPackage() {
     const navigate = useNavigate()
@@ -22,7 +41,6 @@ export default function AssignPackage() {
         next_delivery_date: '',
         default_drug_period: '',
         delivery_id: '',
-        package_code: '',
     })
     const [loading, setLoading] = useState(true)
 
@@ -55,13 +73,12 @@ export default function AssignPackage() {
     const [scanMode, setScanMode] = useState('idle') // idle | scanning | manual | verified
     const [manualCode, setManualCode] = useState('')
     const [scanError, setScanError] = useState('')
-    const [scanSuccess, setScanSuccess] = useState(false)
+    const [validating, setValidating] = useState(false)
     const [verifiedCode, setVerifiedCode] = useState('')
+    const [verifiedPackageId, setVerifiedPackageId] = useState('')
     const [showModal, setShowModal] = useState(false)
     const [confirming, setConfirming] = useState(false)
-    const [scanning, setScanning] = useState(false)
-    const videoRef = useRef(null)
-    const codeReaderRef = useRef(null)
+
 
     useEffect(() => {
         if (!id) return
@@ -76,7 +93,6 @@ export default function AssignPackage() {
                 next_delivery_date:  data.next_delivery_date || '',
                 default_drug_period: data.default_drug_period || '',
                 delivery_id:         data.deliveries[0]?.id || '',
-                package_code:        data.deliveries[0]?.package_code || '',
             }))
             .catch(err => console.error('Failed to load patient:', err))
             .finally(() => setLoading(false))
@@ -89,9 +105,9 @@ export default function AssignPackage() {
             .catch(err => console.error('Failed to load riders:', err))
     }, [])
 
-    // stop camera when leaving scan tab
+    // stop scanning when leaving scan tab
     useEffect(() => {
-        if (activeTab !== 'scan-package') stopScanner()
+        if (activeTab !== 'scan-package') setScanMode('idle')
     }, [activeTab])
 
     async function handleDrugCycleNext() {
@@ -136,48 +152,53 @@ export default function AssignPackage() {
         setActiveTab('scan-package')
     }
 
-    function validateCode(code) {
-        if (!code.trim()) { setScanError('Please enter a code'); return }
+    async function validateQrCode(qrValue) {
+        if (!qrValue) return
+        setScanMode('idle')
+        setValidating(true)
         setScanError('')
-        setScanSuccess(true)
-        setVerifiedCode(code.trim())
-        setScanMode('verified')
-        stopScanner()
-    }
-
-    async function startScanner() {
-        setScanError('')
-        setScanning(true)
-        setScanMode('scanning')
-        codeReaderRef.current = new BrowserQRCodeReader()
         try {
-            await codeReaderRef.current.decodeFromVideoDevice(
-                undefined,
-                videoRef.current,
-                (result, err) => {
-                    if (result) {
-                        stopScanner()
-                        validateCode(result.getText())
-                    }
-                }
-            )
-        } catch (e) {
-            setScanError('Camera not available. Use manual entry.')
-            setScanning(false)
+            const res = await fetch(`http://localhost:4000/api/packages/by-qr?qr_code=${encodeURIComponent(qrValue)}`)
+            const data = await res.json()
+            if (!res.ok) { setScanError(data.error || 'Invalid package'); return }
+            setVerifiedCode(data.package_code)
+            setVerifiedPackageId(data.id)
+            setScanMode('verified')
+        } catch {
+            setScanError('Failed to validate package. Try again.')
+        } finally {
+            setValidating(false)
         }
     }
 
-    function stopScanner() {
-        if (codeReaderRef.current) {
-            BrowserQRCodeReader.releaseAllStreams()
-            codeReaderRef.current = null
+    async function validateManualCode(code) {
+        if (!code.trim()) { setScanError('Please enter a code'); return }
+        setValidating(true)
+        setScanError('')
+        try {
+            const res = await fetch(`http://localhost:4000/api/packages/by-code?package_code=${encodeURIComponent(code.trim())}`)
+            const data = await res.json()
+            if (!res.ok) { setScanError(data.error || 'Invalid package'); return }
+            setVerifiedCode(data.package_code)
+            setVerifiedPackageId(data.id)
+            setScanMode('verified')
+        } catch {
+            setScanError('Failed to validate package. Try again.')
+        } finally {
+            setValidating(false)
         }
-        setScanning(false)
-        if (scanMode === 'scanning') setScanMode('idle')
+    }
+
+    function resetScan() {
+        setVerifiedCode('')
+        setVerifiedPackageId('')
+        setManualCode('')
+        setScanError('')
+        setScanMode('idle')
     }
 
     async function handleConfirm() {
-        if (!form.delivery_id || !selectedRider) return
+        if (!form.delivery_id || !selectedRider || !verifiedPackageId) return
         setConfirming(true)
         setShowModal(false)
         try {
@@ -193,9 +214,13 @@ export default function AssignPackage() {
                 body: JSON.stringify({ package_code: verifiedCode }),
             }).then(res => { if (!res.ok) throw new Error('Failed to save package code') })
 
+            await fetch(`http://localhost:4000/api/packages/${verifiedPackageId}/scan`, {
+                method: 'PATCH',
+            }).then(res => { if (!res.ok) throw new Error('Failed to mark package scanned') })
+
             await fetch(`http://localhost:4000/api/deliveries/${form.delivery_id}/confirm`, {
                 method: 'PATCH',
-            }).then(res => { if (!res.ok) throw new Error('Failed to confirm') })
+            }).then(res => { if (!res.ok) throw new Error('Failed to confirm delivery') })
 
             navigate('/deliveries')
         } catch (err) {
@@ -251,7 +276,7 @@ export default function AssignPackage() {
                 {/* Main panel */}
                 <div className="vp-main">
 
-                    {/* Tabs — display only, Next button advances */}
+                    {/* Tabs */}
                     <div className="vp-tabs">
                         <span className={`vp-tab ${activeTab === 'drug-cycle' ? 'active' : ''}`}>
                             {(activeTab === 'assign-rider' || activeTab === 'scan-package') && <span className="vp-tab-check">✓</span>}
@@ -381,15 +406,8 @@ export default function AssignPackage() {
                             </div>
 
                             <div className="vp-form-footer" style={{ justifyContent: 'space-between' }}>
-                                <button className="vp-back-btn" onClick={() => setActiveTab('drug-cycle')}>
-                                    Back
-                                </button>
-                                <button className="vp-save-btn"
-                                    disabled={!selectedRider}
-                                    onClick={handleAssignRider}
-                                >
-                                    Next
-                                </button>
+                                <button className="vp-back-btn" onClick={() => setActiveTab('drug-cycle')}>Back</button>
+                                <button className="vp-save-btn" disabled={!selectedRider} onClick={handleAssignRider}>Next</button>
                             </div>
                         </div>
                     )}
@@ -405,34 +423,32 @@ export default function AssignPackage() {
                             {scanMode === 'idle' && (
                                 <div className="as-qr-idle">
                                     <img src={QrCode} alt="QR" style={{ width: 120, height: 120, opacity: 0.2 }} />
+                                    {scanError && <p style={{ color: '#ef4444', fontSize: 13, marginTop: 12, textAlign: 'center' }}>{scanError}</p>}
                                 </div>
                             )}
 
                             {/* State: scanning */}
                             {scanMode === 'scanning' && (
-                                <div className="as-scan-state">
-                                    <div className="as-scan-box">
-                                        <video ref={videoRef} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 8 }} />
-                                        <div className="as-scan-line" />
-                                    </div>
-                                    <p className="as-scan-status">Scanning Package...</p>
-                                </div>
+                                <QrScanner
+                                    onScan={validateQrCode}
+                                    onError={() => { setScanError('Camera not available. Use manual entry.'); setScanMode('idle') }}
+                                />
                             )}
 
                             {/* State: manual entry */}
                             {scanMode === 'manual' && (
                                 <div className="as-manual-state">
                                     <p style={{ fontSize: 13, color: '#6b7280', marginBottom: 8 }}>
-                                        Trouble scanning QR Code? Enter manually.
+                                        Trouble scanning QR Code? Enter the package code manually.
                                     </p>
                                     <input
                                         className="as-manual-input"
                                         type="text"
-                                        placeholder="Enter Code"
+                                        placeholder="Enter Package Code"
                                         value={manualCode}
                                         autoFocus
                                         onChange={e => { setManualCode(e.target.value); setScanError('') }}
-                                        onKeyDown={e => e.key === 'Enter' && validateCode(manualCode)}
+                                        onKeyDown={e => e.key === 'Enter' && validateManualCode(manualCode)}
                                     />
                                     {scanError && <p style={{ color: '#ef4444', fontSize: 12, marginTop: 6 }}>{scanError}</p>}
                                 </div>
@@ -443,10 +459,7 @@ export default function AssignPackage() {
                                 <div className="as-code-confirmed">
                                     <p className="as-code-label">Package Code</p>
                                     <div className="as-code-box">{verifiedCode}</div>
-                                    <button className="as-code-remove" onClick={() => {
-                                        setVerifiedCode(''); setScanSuccess(false)
-                                        setManualCode(''); setScanError(''); setScanMode('idle')
-                                    }}>✕ Remove</button>
+                                    <button className="as-code-remove" onClick={resetScan}>✕ Remove</button>
                                 </div>
                             )}
 
@@ -455,22 +468,28 @@ export default function AssignPackage() {
                                 <div style={{ display: 'flex', gap: 12 }}>
                                     {scanMode === 'idle' && (
                                         <>
-                                            <button className="as-scan-btn" onClick={startScanner}>Scan Package</button>
-                                            <button className="as-submit-btn" onClick={() => setScanMode('manual')}>Submit Code</button>
+                                            <button className="as-scan-btn" onClick={() => { setScanError(''); setScanMode('scanning') }}>
+                                                Scan Package
+                                            </button>
+                                            <button className="as-submit-btn" onClick={() => { setScanError(''); setScanMode('manual') }}>
+                                                Submit Code
+                                            </button>
                                         </>
                                     )}
                                     {scanMode === 'scanning' && (
-                                        <button className="as-submit-btn" onClick={stopScanner}>Cancel</button>
+                                        <button className="as-submit-btn" onClick={() => setScanMode('idle')}>Cancel</button>
                                     )}
                                     {scanMode === 'manual' && (
                                         <>
-                                            <button className="as-scan-btn" onClick={() => validateCode(manualCode)}>Submit Code</button>
+                                            <button className="as-scan-btn" disabled={validating} onClick={() => validateManualCode(manualCode)}>
+                                                {validating ? 'Checking...' : 'Submit Code'}
+                                            </button>
                                             <button className="as-submit-btn" onClick={() => { setScanMode('idle'); setScanError('') }}>Cancel</button>
                                         </>
                                     )}
                                 </div>
                                 <div style={{ display: 'flex', gap: 12 }}>
-                                    <button className="vp-back-btn" onClick={() => { stopScanner(); setScanMode('idle'); setActiveTab('assign-rider') }}>
+                                    <button className="vp-back-btn" onClick={() => { setScanMode('idle'); setActiveTab('assign-rider') }}>
                                         Back
                                     </button>
                                     <button className="vp-save-btn"

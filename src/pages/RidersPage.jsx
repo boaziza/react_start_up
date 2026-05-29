@@ -76,7 +76,8 @@ export default function RidersPage() {
             <div className="vp-body" style={{ position: 'relative' }}>
 
                 {/* Table */}
-                <div className="vp-main" style={{ padding: 0, overflow: 'hidden' }}>
+                <div className="vp-main" style={{ padding: 0 }}>
+                    <div className="vp-table-wrap">
                     <table className="del-table">
                         <thead>
                             <tr>
@@ -108,6 +109,7 @@ export default function RidersPage() {
                             ))}
                         </tbody>
                     </table>
+                    </div>
                 </div>
 
                 {/* Side panel */}

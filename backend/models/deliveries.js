@@ -54,10 +54,15 @@ export async function confirmDelivery(deliveryId) {
     return rows[0];
 }
 
-export async function updateDelivery(id, { date, drug_period }) {
+export async function updateDelivery(id, { date, drug_period, package_code }) {
     const { rows } = await pool.query(
-        `UPDATE deliveries SET date = $1, drug_period = $2 WHERE id = $3 RETURNING *`,
-        [date, drug_period, id]
+        `UPDATE deliveries
+         SET date         = COALESCE($1, date),
+             drug_period  = COALESCE($2, drug_period),
+             package_code = COALESCE($3, package_code)
+         WHERE id = $4
+         RETURNING *`,
+        [date ?? null, drug_period ?? null, package_code ?? null, id]
     )
     return rows[0]
 }
