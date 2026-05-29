@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getAllDeliveries, getDeliveryById, createDelivery, updateDelivery, confirmDelivery } from '../models/deliveries.js';
+import { getAllDeliveries, getDeliveryById, createDelivery, updateDelivery } from '../models/deliveries.js';
 
 const router = Router();
 
@@ -21,20 +21,6 @@ router.post('/', async (req, res) => {
 
 router.patch('/:id', async (req, res) => {
   const delivery = await updateDelivery(req.params.id, req.body);
-  if (!delivery) return res.status(404).json({ error: 'Delivery not found' });
-  res.json(delivery);
-});
-
-router.patch('/:id/assign-rider', async (req, res) => {
-  const { riderId } = req.body;
-  if (!riderId) return res.status(400).json({ error: 'riderId is required' });
-  const delivery = await assignRiderToDelivery(req.params.id, riderId);
-  if (!delivery) return res.status(404).json({ error: 'Delivery not found' });
-  res.json(delivery);
-});
-
-router.patch('/:id/confirm', async (req, res) => {
-  const delivery = await confirmDelivery(req.params.id);
   if (!delivery) return res.status(404).json({ error: 'Delivery not found' });
   res.json(delivery);
 });

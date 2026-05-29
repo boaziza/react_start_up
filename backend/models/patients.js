@@ -44,6 +44,8 @@ export async function updatePatient(id, fields) {
         phone_number,
         email,
         hospital_id,
+        location,
+        address,
     } = fields
     const { rows } = await pool.query(
         `UPDATE patients
@@ -53,8 +55,10 @@ export async function updatePatient(id, fields) {
              gender              = COALESCE($4, gender),
              phone_number        = COALESCE($5, phone_number),
              email               = COALESCE($6, email),
-             hospital_id         = COALESCE($7, hospital_id)
-         WHERE id = $8
+             hospital_id         = COALESCE($7, hospital_id),
+             location            = COALESCE($8, location),
+             address             = COALESCE($9, address)
+         WHERE id = $10
          RETURNING *`,
         [
             next_delivery_date ?? null,
@@ -64,6 +68,8 @@ export async function updatePatient(id, fields) {
             phone_number ?? null,
             email ?? null,
             hospital_id ?? null,
+            location ?? null,
+            address ?? null,
             id,
         ]
     )

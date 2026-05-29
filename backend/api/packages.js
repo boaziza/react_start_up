@@ -1,7 +1,23 @@
 import { Router } from 'express';
-import { getPackageByQrCode, getPackageByCode, markPackageScanned } from '../models/packages.js';
+import { getAllPackages, createPackage, getPackageByQrCode, getPackageByCode, markPackageScanned } from '../models/packages.js';
 
 const router = Router();
+
+router.get('/', async (req, res) => {
+    const packages = await getAllPackages();
+    res.json(packages);
+});
+
+router.post('/', async (req, res) => {
+    const { package_code, qr_code } = req.body;
+    if (!package_code || !qr_code) return res.status(400).json({ error: 'package_code and qr_code are required' });
+    try {
+        const pkg = await createPackage({ package_code, qr_code });
+        res.status(201).json(pkg);
+    } catch (err) {
+        res.status(409).json({ error: 'Package code or QR code already exists' });
+    }
+});
 
 // Validate by QR code value (from camera scan)
 router.get('/by-qr', async (req, res) => {

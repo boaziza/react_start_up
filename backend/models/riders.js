@@ -40,12 +40,6 @@ export async function getRiderById(id) {
 }
 
 export async function createRider({ name, area, phone_number }) {
-
-    const existingRider = await getRiderById(id);
-    if (existingRider) {
-        throw new Error('Rider already exists');
-    }
-    
     const { rows } = await pool.query(
         'INSERT INTO riders (name, area, phone_number) VALUES ($1, $2, $3) RETURNING *',
         [name, area, phone_number]

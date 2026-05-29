@@ -7,6 +7,8 @@ import AssignPackage from './pages/AssignPackage'
 import DeliveriesPage from './pages/DeliveriesPage'
 import ViewDeliveryPage from './pages/ViewDeliveryPage'
 import RidersPage from './pages/RidersPage'
+import OverviewPage from './pages/OverviewPage'
+import AdminPage from './pages/AdminPage'
 
 function ProtectedRoute({ children }) {
   const user = localStorage.getItem('user')
@@ -39,6 +41,13 @@ export default function App() {
         } />
         <Route path="/dispatchRiders" element={
           <ProtectedRoute><RidersPage /></ProtectedRoute>
+        } />
+
+        <Route path="/overview" element={
+          <ProtectedRoute><OverviewPage /></ProtectedRoute>
+        } />
+        <Route path="/admin" element={
+          <ProtectedRoute><AdminPage /></ProtectedRoute>
         } />
 
         {/* Catch-all → login */}

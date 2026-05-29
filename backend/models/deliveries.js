@@ -34,25 +34,6 @@ export async function getDeliveryById(id) {
     return rows[0];
 }
 
-export async function assignRiderToDelivery(deliveryId, riderId) {
-    const { rows } = await pool.query(
-        `UPDATE deliveries SET rider_id = $1, status = 'pending' WHERE id = $2 RETURNING *`,
-        [riderId, deliveryId]
-    );
-    await pool.query(
-        `UPDATE riders SET number_of_deliveries = number_of_deliveries + 1 WHERE id = $1`,
-        [riderId]
-    );
-    return rows[0];
-}
-
-export async function confirmDelivery(deliveryId) {
-    const { rows } = await pool.query(
-        `UPDATE deliveries SET status = 'pending' WHERE id = $1 RETURNING *`,
-        [deliveryId]
-    );
-    return rows[0];
-}
 
 export async function updateDelivery(id, { date, drug_period, package_code, status }) {
     const { rows } = await pool.query(

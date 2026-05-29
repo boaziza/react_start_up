@@ -14,10 +14,13 @@ export default function ViewPatient() {
     const [form, setForm] = useState({
         hospital_id: '',
         first_name: '',
-        last_name: '',
         gender: '',
         phone: '',
         email: '',
+        location: '',
+        address: '',
+        next_delivery_date: '',
+        default_drug_period: '',
         deliveries: [],
     })
     const [loading, setLoading] = useState(true)
@@ -35,17 +38,16 @@ export default function ViewPatient() {
         })
         .then(data => {
             setForm({
-            hospital_id: data.hospital_id || '',
-            first_name: data.name || '',
-            last_name: data.last_name || '',
-            location: data.location || '',
-            address: data.address || '',
-            gender: data.gender || '',
-            phone: data.phone_number || '',
-            email: data.email || '',
-            next_delivery_date: data.next_delivery_date || '',
+            hospital_id:         data.hospital_id || '',
+            first_name:          data.name || '',
+            gender:              data.gender || '',
+            phone:               data.phone_number || '',
+            email:               data.email || '',
+            location:            data.location || '',
+            address:             data.address || '',
+            next_delivery_date:  data.next_delivery_date || '',
             default_drug_period: data.default_drug_period || '',
-            deliveries: data.deliveries || [],
+            deliveries:          data.deliveries || [],
             })
         })
         .catch(error => {
@@ -91,6 +93,8 @@ export default function ViewPatient() {
                 body: JSON.stringify({
                     next_delivery_date:  form.next_delivery_date || null,
                     default_drug_period: form.default_drug_period ? Number(form.default_drug_period) : null,
+                    location:            form.location || null,
+                    address:             form.address || null,
                 }),
             })
             setEditingDelivery(false)
@@ -109,11 +113,11 @@ export default function ViewPatient() {
                 <div className="vp-logo">N</div>
 
                 <div className="vp-nav-links">
-                    <a className="vp-nav-link" onClick={() => navigate('/Overview')}>Overview</a>
-                    <a className="vp-nav-link" onClick={() => navigate('/Deliveries')}>Deliveries</a>
-                    <a className="vp-nav-link active" onClick={() => navigate('/Patients')}>Patients</a>
-                    <a className="vp-nav-link" onClick={() => navigate('/DispatchRiders')}>Dispatch Riders</a>
-                    <a className="vp-nav-link" onClick={() => navigate('/Admin')}>Admin</a>
+                    <a className="vp-nav-link" onClick={() => navigate('/overview')}>Overview</a>
+                    <a className="vp-nav-link" onClick={() => navigate('/deliveries')}>Deliveries</a>
+                    <a className="vp-nav-link active" onClick={() => navigate('/patients')}>Patients</a>
+                    <a className="vp-nav-link" onClick={() => navigate('/dispatchRiders')}>Dispatch Riders</a>
+                    <a className="vp-nav-link" onClick={() => navigate('/admin')}>Admin</a>
                 </div>
 
                 <div className="vp-user" onClick={() => { localStorage.removeItem('user'); navigate('/login') }}>
@@ -176,12 +180,6 @@ export default function ViewPatient() {
                 {/* Main panel */}
                 {activeMenu === 'patient-profile' && (
                     <div className="vp-main">
-
-                        {/* Payment status */}
-                        <div className="vp-payment-row">
-                            <span className="vp-payment-label">Payment Status</span>
-                            <span className="vp-badge paid">Paid</span>
-                        </div>
 
                         {/* Tabs */}
                         <div className="vp-tabs">
@@ -267,20 +265,12 @@ export default function ViewPatient() {
 
                                     <div className="vp-field half">
                                         <label>Delivery Area</label>
-                                        <input readOnly={!editingDelivery} name="delivery_area" value={form.location} onChange={handleChange} />
+                                        <input readOnly={!editingDelivery} name="location" value={form.location} onChange={handleChange} />
                                     </div>
 
                                     <div className="vp-field half">
                                         <label>Delivery Address</label>
-                                        <input readOnly={!editingDelivery} name="delivery_address" value={form.address} onChange={handleChange} />
-                                    </div>
-
-                                    <div className="vp-field half">
-                                        <label>Payment Status</label>
-                                        <select disabled={!editingDelivery} name="payment_status" value={form.payment_status} onChange={handleChange}>
-                                            <option value={true}>Paid</option>
-                                            <option value={false}>Unpaid</option>
-                                        </select>
+                                        <input readOnly={!editingDelivery} name="address" value={form.address} onChange={handleChange} />
                                     </div>
                                 </div>
                                 <button className="vp-save-btn" disabled={!editingDelivery || savingDelivery} onClick={handleSaveDelivery}>
@@ -304,7 +294,7 @@ export default function ViewPatient() {
                                 <th>Patient's Name</th>
                                 <th>Phone Number</th>
                                 <th>Location</th>
-                                {/* <th></th> */}
+                                <th></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -322,14 +312,14 @@ export default function ViewPatient() {
                                     <td>{form.first_name}</td>
                                     <td>{form.phone}</td>
                                     <td>{d.area}</td>
-                                    {/* <td>
+                                    <td>
                                         <button
                                             className="del-view-btn"
                                             onClick={() => navigate(`/deliveries/${d.id}`)}
                                         >
                                             View
                                         </button>
-                                    </td> */}
+                                    </td>
                                 </tr>
                             ))}
                         </tbody>

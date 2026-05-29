@@ -1,21 +1,37 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { useZxing } from 'react-zxing'
+import { BrowserQRCodeReader } from '@zxing/browser'
 import QrCode from '../components/icons/qrcode.png'
 import '../styles/app.css'
 
 function QrScanner({ onScan, onError }) {
-    const { ref } = useZxing({
-        onDecodeResult(result) { onScan(result.getText()) },
-        onError(err) {
-            if (err?.name === 'AbortError' || err?.message?.includes('already')) return
-            onError()
-        },
-    })
+    const videoRef = useRef(null)
+
+    useEffect(() => {
+        const reader = new BrowserQRCodeReader()
+        let active = true
+
+        reader.decodeFromVideoDevice(undefined, videoRef.current, (result, err) => {
+            if (!active) return
+            if (result) {
+                active = false
+                BrowserQRCodeReader.releaseAllStreams()
+                onScan(result.getText())
+            }
+        }).catch(() => {
+            if (active) onError()
+        })
+
+        return () => {
+            active = false
+            BrowserQRCodeReader.releaseAllStreams()
+        }
+    }, [])
+
     return (
         <div className="as-scan-state">
             <div className="as-scan-box">
-                <video ref={ref} muted playsInline style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 8 }} />
+                <video ref={videoRef} muted playsInline style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 8 }} />
                 <div className="as-scan-line" />
             </div>
             <p className="as-scan-status">Scanning Package...</p>
