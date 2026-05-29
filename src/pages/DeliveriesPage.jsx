@@ -7,7 +7,7 @@ export default function DeliveriesPage() {
     const user = JSON.parse(localStorage.getItem('user') || '{}')
 
     const [deliveries, setDeliveries] = useState([])
-    const [activeFilter, setActiveFilter] = useState('Paid')
+    const [activeFilter, setActiveFilter] = useState('Dispatched')
     const [search, setSearch] = useState('')
 
     useEffect(() => {
@@ -20,20 +20,15 @@ export default function DeliveriesPage() {
             .catch(err => console.error('Failed to load deliveries:', err))
     }, [])
 
-    // counts from real status column + payment_status
     const counts = {
-        paid:       deliveries.filter(d => d.status === 'unassigned' && d.payment_status === true).length,
-        unpaid:     deliveries.filter(d => d.status === 'unassigned' && d.payment_status === false).length,
-        pending:    deliveries.filter(d => d.status === 'pending').length,
+        dispatched: deliveries.filter(d => d.status === 'dispatched').length,
         successful: deliveries.filter(d => d.status === 'successful').length,
         failed:     deliveries.filter(d => d.status === 'failed').length,
     }
 
     const filtered = deliveries.filter(d => {
         const matchesFilter =
-            activeFilter === 'Paid'       ? (d.status === 'unassigned' && d.payment_status === true)  :
-            activeFilter === 'Unpaid'     ? (d.status === 'unassigned' && d.payment_status === false) :
-            activeFilter === 'Pending'    ? d.status === 'pending'    :
+            activeFilter === 'Dispatched' ? d.status === 'dispatched' :
             activeFilter === 'Successful' ? d.status === 'successful' :
             activeFilter === 'Failed'     ? d.status === 'failed'     : true
 
@@ -80,7 +75,7 @@ export default function DeliveriesPage() {
                     <span className="del-search-icon">&#128269;</span>
                     <input
                         className="del-search"
-                        placeholder="Search by package code"
+                        placeholder="Search by package code or patient"
                         value={search}
                         onChange={e => setSearch(e.target.value)}
                     />
@@ -93,32 +88,14 @@ export default function DeliveriesPage() {
                 {/* Sidebar */}
                 <div className="vp-sidebar">
 
-                    <p className="del-sidebar-group">Unassigned Deliveries</p>
+                    <p className="del-sidebar-group">Deliveries</p>
 
                     <div
-                        className={`del-sidebar-item ${activeFilter === 'Paid' ? 'active' : ''}`}
-                        onClick={() => setActiveFilter('Paid')}
+                        className={`del-sidebar-item ${activeFilter === 'Dispatched' ? 'active' : ''}`}
+                        onClick={() => setActiveFilter('Dispatched')}
                     >
-                        <span>Paid</span>
-                        {counts.paid > 0 && <span className="del-badge del-badge-blue">{counts.paid}</span>}
-                    </div>
-
-                    <div
-                        className={`del-sidebar-item ${activeFilter === 'Unpaid' ? 'active' : ''}`}
-                        onClick={() => setActiveFilter('Unpaid')}
-                    >
-                        <span>Unpaid</span>
-                        {counts.unpaid > 0 && <span className="del-badge del-badge-red">{counts.unpaid}</span>}
-                    </div>
-
-                    <p className="del-sidebar-group">Assigned Deliveries</p>
-
-                    <div
-                        className={`del-sidebar-item ${activeFilter === 'Pending' ? 'active' : ''}`}
-                        onClick={() => setActiveFilter('Pending')}
-                    >
-                        <span>Pending</span>
-                        {counts.pending > 0 && <span className="del-badge del-badge-blue">{counts.pending}</span>}
+                        <span>Dispatched</span>
+                        {counts.dispatched > 0 && <span className="del-badge del-badge-blue">{counts.dispatched}</span>}
                     </div>
 
                     <div

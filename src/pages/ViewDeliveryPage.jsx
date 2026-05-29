@@ -8,6 +8,24 @@ export default function ViewDeliveryPage() {
     const user = JSON.parse(localStorage.getItem('user') || '{}')
     const [delivery, setDelivery] = useState(null)
     const [loading, setLoading] = useState(true)
+    const [updating, setUpdating] = useState(false)
+
+    async function updateStatus(status) {
+        setUpdating(true)
+        try {
+            const res = await fetch(`http://localhost:4000/api/deliveries/${id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status }),
+            })
+            if (!res.ok) throw new Error()
+            setDelivery(d => ({ ...d, status }))
+        } catch {
+            console.error('Failed to update status')
+        } finally {
+            setUpdating(false)
+        }
+    }
 
     useEffect(() => {
         fetch(`http://localhost:4000/api/deliveries/${id}`)
@@ -18,8 +36,7 @@ export default function ViewDeliveryPage() {
     }, [id])
 
     const statusColor = {
-        unassigned: 'pat-badge-gray',
-        pending:    'pat-badge-blue',
+        dispatched: 'pat-badge-blue',
         successful: 'pat-badge-green',
         failed:     'pat-badge-red',
     }
@@ -54,9 +71,29 @@ export default function ViewDeliveryPage() {
                     <span className="vp-breadcrumb-sep"> / </span>
                     <span>{delivery.package_code || 'View Delivery'}</span>
                 </div>
-                <span className={`pat-badge ${statusColor[delivery.status] ?? 'pat-badge-gray'}`}>
-                    {delivery.status}
-                </span>
+                <div className="vp-subheader-right">
+                    <span className={`pat-badge ${statusColor[delivery.status] ?? 'pat-badge-gray'}`}>
+                        {delivery.status}
+                    </span>
+                    {delivery.status === 'dispatched' && (
+                        <>
+                            <button
+                                className="vp-save-btn"
+                                disabled={updating}
+                                onClick={() => updateStatus('successful')}
+                            >
+                                {updating ? 'Updating...' : 'Confirm Delivery'}
+                            </button>
+                            <button
+                                className="vp-back-btn"
+                                disabled={updating}
+                                onClick={() => updateStatus('failed')}
+                            >
+                                Report Failed
+                            </button>
+                        </>
+                    )}
+                </div>
             </div>
 
             {/* Body */}

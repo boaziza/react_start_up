@@ -54,29 +54,30 @@ export async function confirmDelivery(deliveryId) {
     return rows[0];
 }
 
-export async function updateDelivery(id, { date, drug_period, package_code }) {
+export async function updateDelivery(id, { date, drug_period, package_code, status }) {
     const { rows } = await pool.query(
         `UPDATE deliveries
          SET date         = COALESCE($1, date),
              drug_period  = COALESCE($2, drug_period),
-             package_code = COALESCE($3, package_code)
-         WHERE id = $4
+             package_code = COALESCE($3, package_code),
+             status       = COALESCE($4, status)
+         WHERE id = $5
          RETURNING *`,
-        [date ?? null, drug_period ?? null, package_code ?? null, id]
+        [date ?? null, drug_period ?? null, package_code ?? null, status ?? null, id]
     )
     return rows[0]
 }
 
-export async function createDelivery({ patient_id, drug_name, drug_period }) {
-
-    const existingDelivery = await getDeliveryById(id);
-    if (existingDelivery) {
-        throw new Error('Delivery already exists');
-    }
-    
+export async function createDelivery({ patient_id, rider_id, package_code, date, drug_period, area, address }) {
     const { rows } = await pool.query(
-        'INSERT INTO deliveries (patient_id, drug_name, drug_period) VALUES ($1, $2, $3) RETURNING *',
-        [patient_id, drug_name, drug_period]
+        `INSERT INTO deliveries (patient_id, rider_id, package_code, date, drug_period, area, address, status)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, 'dispatched')
+         RETURNING *`,
+        [patient_id, rider_id, package_code, date, drug_period, area ?? null, address ?? null]
+    );
+    await pool.query(
+        `UPDATE riders SET number_of_deliveries = number_of_deliveries + 1 WHERE id = $1`,
+        [rider_id]
     );
     return rows[0];
 }

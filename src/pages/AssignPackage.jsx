@@ -33,14 +33,16 @@ export default function AssignPackage() {
     const [newDrugPeriod, setNewDrugPeriod] = useState('')
     const [savingCycle, setSavingCycle] = useState(false)
 
+    const [confirmedPeriod, setConfirmedPeriod] = useState('')
+
     const [form, setForm] = useState({
         hospital_id: '',
         first_name: '',
         phone: '',
         area: '',
+        address: '',
         next_delivery_date: '',
         default_drug_period: '',
-        delivery_id: '',
     })
     const [loading, setLoading] = useState(true)
 
@@ -90,9 +92,9 @@ export default function AssignPackage() {
                 first_name:          data.name || '',
                 phone:               data.phone_number || '',
                 area:                data.location || '',
+                address:             data.address || '',
                 next_delivery_date:  data.next_delivery_date || '',
                 default_drug_period: data.default_drug_period || '',
-                delivery_id:         data.deliveries[0]?.id || '',
             }))
             .catch(err => console.error('Failed to load patient:', err))
             .finally(() => setLoading(false))
@@ -125,13 +127,7 @@ export default function AssignPackage() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(patientUpdate),
             })
-            if (form.delivery_id) {
-                await fetch(`http://localhost:4000/api/deliveries/${form.delivery_id}`, {
-                    method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ date: form.next_delivery_date, drug_period: Number(period) }),
-                })
-            }
+            setConfirmedPeriod(Number(period))
             setActiveTab('assign-rider')
         } catch (err) {
             console.error('Failed to save drug cycle:', err)
@@ -198,29 +194,28 @@ export default function AssignPackage() {
     }
 
     async function handleConfirm() {
-        if (!form.delivery_id || !selectedRider || !verifiedPackageId) return
+        if (!selectedRider || !verifiedPackageId) return
         setConfirming(true)
         setShowModal(false)
         try {
-            await fetch(`http://localhost:4000/api/deliveries/${form.delivery_id}/assign-rider`, {
-                method: 'PATCH',
+            const res = await fetch(`http://localhost:4000/api/deliveries`, {
+                method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ riderId: selectedRider }),
-            }).then(res => { if (!res.ok) throw new Error('Failed to assign rider') })
-
-            await fetch(`http://localhost:4000/api/deliveries/${form.delivery_id}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ package_code: verifiedCode }),
-            }).then(res => { if (!res.ok) throw new Error('Failed to save package code') })
+                body: JSON.stringify({
+                    patient_id:   id,
+                    rider_id:     selectedRider,
+                    package_code: verifiedCode,
+                    date:         form.next_delivery_date,
+                    drug_period:  confirmedPeriod,
+                    area:         form.area,
+                    address:      form.address,
+                }),
+            })
+            if (!res.ok) throw new Error('Failed to create delivery')
 
             await fetch(`http://localhost:4000/api/packages/${verifiedPackageId}/scan`, {
                 method: 'PATCH',
-            }).then(res => { if (!res.ok) throw new Error('Failed to mark package scanned') })
-
-            await fetch(`http://localhost:4000/api/deliveries/${form.delivery_id}/confirm`, {
-                method: 'PATCH',
-            }).then(res => { if (!res.ok) throw new Error('Failed to confirm delivery') })
+            }).then(r => { if (!r.ok) throw new Error('Failed to mark package scanned') })
 
             navigate('/deliveries')
         } catch (err) {
@@ -399,7 +394,7 @@ export default function AssignPackage() {
                                         </div>
                                         <div className="rider-card-col">
                                             <span className="rider-card-label">Number of Deliveries</span>
-                                            <span className="rider-card-value">{rider.delivery_count} Deliveries</span>
+                                            <span className="rider-card-value">{rider.number_of_deliveries} Deliveries</span>
                                         </div>
                                     </div>
                                 ))}

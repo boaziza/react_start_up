@@ -79,20 +79,6 @@ export default function PatientsPage() {
     )
 }
 
-function StatusBadge({ status }) {
-    const colorMap = {
-        'Completed':    'pat-badge-green',
-        'Due & Paid':   'pat-badge-orange',
-        'Due & Unpaid': 'pat-badge-red',
-        'Assigned':     'pat-badge-blue',
-        'Paid':         'pat-badge-green',
-    }
-    return (
-        <span className={`pat-badge ${colorMap[status] ?? 'pat-badge-gray'}`}>
-            {status}
-        </span>
-    )
-}
 
 function PatientTable({ search, sortBy, page, setPage, perPage }) {
     const navigate = useNavigate()
@@ -130,7 +116,6 @@ function PatientTable({ search, sortBy, page, setPage, perPage }) {
                         <th>Phone Number</th>
                         <th>Next Delivery Date</th>
                         <th>Location</th>
-                        <th>Status</th>
                         <th></th>
                     </tr>
                 </thead>
@@ -147,7 +132,6 @@ function PatientTable({ search, sortBy, page, setPage, perPage }) {
                                 <td>{patient.phone_number}</td>
                                 <td>{new Date(patient.next_delivery_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</td>
                                 <td>{patient.location}</td>
-                                <td><StatusBadge status={patient.status} /></td>
                                 <td>
                                     <button
                                         className="del-view-btn"
