@@ -1,10 +1,15 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import '../styles/app.css'
+import Navbar from '../components/Navbar'
 
 export default function RidersPage() {
     const navigate = useNavigate()
     const user = JSON.parse(localStorage.getItem('user') || '{}')
+    useEffect(() => {
+        document.title = 'Dispatch Riders'
+    }, [])
+
     const [riders, setRiders] = useState([])
     const [search, setSearch] = useState('')
     const [selectedRider, setSelectedRider] = useState(null)
@@ -41,22 +46,7 @@ export default function RidersPage() {
     return (
         <div className="vp-page">
 
-            {/* Navbar */}
-            <nav className="vp-navbar">
-                <div className="vp-logo">N</div>
-                <div className="vp-nav-links">
-                    <a className="vp-nav-link" onClick={() => navigate('/overview')}>Overview</a>
-                    <a className="vp-nav-link" onClick={() => navigate('/deliveries')}>Deliveries</a>
-                    <a className="vp-nav-link" onClick={() => navigate('/patients')}>Patients</a>
-                    <a className="vp-nav-link active">Dispatch Riders</a>
-                    <a className="vp-nav-link" onClick={() => navigate('/admin')}>Admin</a>
-                </div>
-                <div className="vp-user" onClick={() => { localStorage.removeItem('user'); navigate('/login') }}>
-                    <div className="vp-avatar">{user.username?.[0]?.toUpperCase() || 'U'}</div>
-                    <span>{user.username || 'User'}</span>
-                    <span className="vp-chevron">&#9662;</span>
-                </div>
-            </nav>
+            <Navbar active="Dispatch Riders" />
 
             {/* Toolbar */}
             <div className="del-toolbar">

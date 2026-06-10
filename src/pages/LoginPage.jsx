@@ -1,9 +1,14 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import '../styles/LoginPage.css'
 
 export default function LoginPage() {
   const navigate = useNavigate()
+
+  useEffect(() => {
+    document.title = 'Sign In'
+  }, [])
+
   const [showPassword, setShowPassword] = useState(false)
   const [rememberMe, setRememberMe] = useState(false)
   const [email, setEmail] = useState('')

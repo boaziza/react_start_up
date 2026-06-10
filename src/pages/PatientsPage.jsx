@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import '../styles/app.css'
+import Navbar from '../components/Navbar'
 
 const emptyForm = {
     hospital_id: '',
@@ -21,6 +22,10 @@ export default function PatientsPage() {
     const [sortBy, setSortBy] = useState('hospital_id')
     const [page, setPage] = useState(1)
     const perPage = 10
+
+    useEffect(() => {
+        document.title = 'Patients'
+    }, [])
 
     const [showModal, setShowModal] = useState(false)
     const [form, setForm] = useState(emptyForm)
@@ -73,22 +78,7 @@ export default function PatientsPage() {
     return (
         <div className="vp-page">
 
-            {/* Navbar */}
-            <nav className="vp-navbar">
-                <div className="vp-logo">N</div>
-                <div className="vp-nav-links">
-                    <a className="vp-nav-link" onClick={() => navigate('/overview')}>Overview</a>
-                    <a className="vp-nav-link" onClick={() => navigate('/deliveries')}>Deliveries</a>
-                    <a className="vp-nav-link active">Patients</a>
-                    <a className="vp-nav-link" onClick={() => navigate('/dispatchRiders')}>Dispatch Riders</a>
-                    <a className="vp-nav-link" onClick={() => navigate('/admin')}>Admin</a>
-                </div>
-                <div className="vp-user" onClick={() => { localStorage.removeItem('user'); navigate('/login') }}>
-                    <div className="vp-avatar">{user.username?.[0]?.toUpperCase() || 'U'}</div>
-                    <span>{user.username || 'User'}</span>
-                    <span className="vp-chevron">&#9662;</span>
-                </div>
-            </nav>
+            <Navbar active="Patients" />
 
             {/* Page content */}
             <div className="pat-content">

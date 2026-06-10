@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { BrowserQRCodeReader } from '@zxing/browser'
+import Navbar from '../components/Navbar'
 import QrCode from '../components/icons/qrcode.png'
 import '../styles/app.css'
 
@@ -43,6 +44,10 @@ export default function AssignPackage() {
     const navigate = useNavigate()
     const { id } = useParams()
     const user = JSON.parse(localStorage.getItem('user') || '{}')
+
+    useEffect(() => {
+        document.title = 'Assign Package'
+    }, [])
 
     const [activeTab, setActiveTab] = useState('drug-cycle')
     const [cycleChoice, setCycleChoice] = useState('same')
@@ -245,21 +250,7 @@ export default function AssignPackage() {
         <div className="vp-page">
 
             {/* Navbar */}
-            <nav className="vp-navbar">
-                <div className="vp-logo">N</div>
-                <div className="vp-nav-links">
-                    <a className="vp-nav-link" onClick={() => navigate('/overview')}>Overview</a>
-                    <a className="vp-nav-link" onClick={() => navigate('/deliveries')}>Deliveries</a>
-                    <a className="vp-nav-link active">Patients</a>
-                    <a className="vp-nav-link" onClick={() => navigate('/dispatchRiders')}>Dispatch Riders</a>
-                    <a className="vp-nav-link" onClick={() => navigate('/admin')}>Admin</a>
-                </div>
-                <div className="vp-user" onClick={() => { localStorage.removeItem('user'); navigate('/login') }}>
-                    <div className="vp-avatar">{user.username?.[0]?.toUpperCase() || 'U'}</div>
-                    <span>{user.username || 'User'}</span>
-                    <span className="vp-chevron">▾</span>
-                </div>
-            </nav>
+            <Navbar active="Patients" />
 
             {/* Breadcrumb */}
             <div className="vp-subheader">

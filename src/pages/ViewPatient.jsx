@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import '../styles/app.css'
+import Navbar from '../components/Navbar'
 
 export default function ViewPatient() {
     const navigate = useNavigate()
@@ -8,6 +9,10 @@ export default function ViewPatient() {
     const user = JSON.parse(localStorage.getItem('user') || '{}')
     const [activeTab, setActiveTab] = useState('patient')
     const [activeMenu, setActiveMenu] = useState('patient-profile')
+    useEffect(() => {
+        document.title = 'View Patient'
+    }, [])
+
     const [editingPatient, setEditingPatient] = useState(false)
     const [editingDelivery, setEditingDelivery] = useState(false)
 
@@ -108,24 +113,7 @@ export default function ViewPatient() {
     return (
         <div className="vp-page">
 
-            {/* Navbar */}
-            <nav className="vp-navbar">
-                <div className="vp-logo">N</div>
-
-                <div className="vp-nav-links">
-                    <a className="vp-nav-link" onClick={() => navigate('/overview')}>Overview</a>
-                    <a className="vp-nav-link" onClick={() => navigate('/deliveries')}>Deliveries</a>
-                    <a className="vp-nav-link active" onClick={() => navigate('/patients')}>Patients</a>
-                    <a className="vp-nav-link" onClick={() => navigate('/dispatchRiders')}>Dispatch Riders</a>
-                    <a className="vp-nav-link" onClick={() => navigate('/admin')}>Admin</a>
-                </div>
-
-                <div className="vp-user" onClick={() => { localStorage.removeItem('user'); navigate('/login') }}>
-                    <div className="vp-avatar">{user.username?.[0]?.toUpperCase() || 'U'}</div>
-                    <span>{user.username || 'User'}</span>
-                    <span className="vp-chevron">▾</span>
-                </div>
-            </nav>
+            <Navbar active="Patients" />
 
             {/* Sub header */}
             <div className="vp-subheader">

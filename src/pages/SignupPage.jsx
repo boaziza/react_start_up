@@ -1,15 +1,21 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from "react-router-dom";
 import '../styles/LoginPage.css'
 
 export default function SignupPage() {
     const navigate = useNavigate();
+
+    useEffect(() => {
+        document.title = 'Sign Up'
+    }, [])
+
     const [showPassword, setShowPassword] = useState(false)
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [username, setUsername] = useState('')
     const [error, setError] = useState('')
     const [loading, setLoading] = useState(false)
+    const [rememberMe, setRememberMe] = useState(false)
 
     async function handleSubmit(e) {
         e.preventDefault()
@@ -89,7 +95,7 @@ export default function SignupPage() {
                         {loading ? 'Creating account...' : 'Sign Up'}
                     </button>
                     <div className="row">
-                        <span>Don't have an account?</span>
+                        <span>Already have an account?</span>
                         <a href="#" onClick={() => navigate('/login')}>Log In</a>
                     </div>
                 </form>

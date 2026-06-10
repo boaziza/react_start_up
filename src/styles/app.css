@@ -4,7 +4,10 @@
 
 .vp-page {
     width: 100%;
-    min-height: 100vh;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
     background: #f4f5f7;
     font-family: 'Inter', sans-serif;
 }
@@ -18,6 +21,7 @@
     align-items: center;
     justify-content: space-between;
     height: 56px;
+    flex-shrink: 0;
     background: white;
     border-bottom: 1px solid #e5e7eb;
     padding: 0 32px;
@@ -86,6 +90,51 @@
 
 .vp-chevron { color: #9ca3af; font-size: 11px; }
 
+.vp-navbar-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.vp-username { font-size: 13px; color: #374151; }
+
+/* Hamburger — hidden on desktop */
+.vp-hamburger {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: #374151;
+    padding: 4px 8px;
+    line-height: 1;
+}
+
+/* Mobile dropdown menu */
+.vp-mobile-menu {
+    display: none;
+    flex-direction: column;
+    background: white;
+    border-bottom: 1px solid #e5e7eb;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    z-index: 100;
+    position: relative;
+}
+
+.vp-mobile-link {
+    padding: 14px 20px;
+    font-size: 14px;
+    color: #374151;
+    cursor: pointer;
+    border-bottom: 1px solid #f3f4f6;
+    text-decoration: none;
+}
+
+.vp-mobile-link:hover   { background: #f9fafb; }
+.vp-mobile-link.active  { color: #2563eb; font-weight: 600; background: #eff6ff; }
+.vp-mobile-link.logout  { color: #ef4444; }
+.vp-mobile-divider      { height: 1px; background: #e5e7eb; margin: 4px 0; }
+
 /* =============================================
    SUB HEADER
    ============================================= */
@@ -95,6 +144,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 14px 32px;
+    flex-shrink: 0;
     background: white;
     border-bottom: 1px solid #e5e7eb;
 }
@@ -133,6 +183,9 @@
     display: flex;
     gap: 20px;
     padding: 24px 32px;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
 }
 
 .vp-sidebar {
@@ -143,6 +196,7 @@
     border: 1px solid #e5e7eb;
     padding: 16px 0;
     height: fit-content;
+    overflow-y: auto;
 }
 
 .vp-sidebar-label {
@@ -173,14 +227,21 @@
 .vp-main {
     flex: 1;
     min-width: 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
     background: white;
     border-radius: 8px;
     border: 1px solid #e5e7eb;
     padding: 24px;
+    overflow-y: auto;
 }
 
 .vp-table-wrap {
+    flex: 1;
+    min-height: 0;
     overflow-x: auto;
+    overflow-y: auto;
     width: 100%;
 }
 
@@ -205,6 +266,7 @@
 
 .vp-tabs {
     display: flex;
+    flex-shrink: 0;
     border-bottom: 1px solid #e5e7eb;
     margin-bottom: 24px;
 }
@@ -642,6 +704,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 14px 32px;
+    flex-shrink: 0;
     background: #fff;
     border-bottom: 1px solid #e5e7eb;
 }
@@ -767,6 +830,11 @@
 
 .pat-content {
     padding: 24px 32px;
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
 
 .pat-page-header {
@@ -774,6 +842,7 @@
     align-items: center;
     justify-content: space-between;
     margin-bottom: 20px;
+    flex-shrink: 0;
 }
 
 .pat-title {
@@ -800,6 +869,10 @@
     border-radius: 8px;
     border: 1px solid #e5e7eb;
     overflow: hidden;
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
 }
 
 .pat-badge {
@@ -824,6 +897,8 @@
     border-top: 1px solid #e5e7eb;
     font-size: 13px;
     color: #9ca3af;
+    flex-shrink: 0;
+    background: white;
 }
 
 .pat-pagination-controls {
@@ -954,6 +1029,7 @@
     grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
     gap: 16px;
     margin-top: 8px;
+    flex-shrink: 0;
 }
 
 .ov-card {
@@ -981,23 +1057,79 @@
    RESPONSIVE
    ============================================= */
 
+/* ── Tablet (≤1024px) ── */
 @media (max-width: 1024px) {
-    .vp-navbar { padding: 0 16px; }
-    .vp-subheader { padding: 12px 16px; }
-    .vp-body { padding: 16px; gap: 12px; }
-    .del-toolbar { padding: 10px 16px; }
-    .pat-content { padding: 16px; }
-    .vp-sidebar { width: 200px; }
+    .vp-navbar        { padding: 0 16px; }
+    .vp-subheader     { padding: 12px 16px; }
+    .vp-body          { padding: 16px; gap: 12px; }
+    .del-toolbar      { padding: 10px 16px; }
+    .pat-content      { padding: 16px; }
+    .vp-sidebar       { width: 200px; }
+    .ov-cards         { grid-template-columns: repeat(2, 1fr); }
 }
 
+/* ── Mobile (≤768px) ── */
 @media (max-width: 768px) {
-    .vp-sidebar { display: none; }
-    .del-toolbar { flex-direction: column; align-items: flex-start; gap: 10px; }
-    .del-search { width: 100%; }
-    .del-search-wrapper { width: 100%; }
-    .vp-subheader { flex-direction: column; align-items: flex-start; gap: 10px; }
-    .vp-subheader-right { width: 100%; justify-content: flex-start; }
-    .vp-nav-link { padding: 0 10px; font-size: 12px; }
-    .vp-field.half { width: 100%; }
-    .vp-body { padding: 12px; }
+
+    /* Navbar — shrink links, allow horizontal scroll */
+    .vp-navbar        { padding: 0 12px; height: 52px; }
+    .vp-logo          { width: 28px; height: 28px; font-size: 12px; }
+    .vp-nav-links     { gap: 0; overflow-x: auto; }
+    .vp-nav-link      { padding: 0 10px; font-size: 11px; height: 52px; white-space: nowrap; }
+    .vp-user span:not(.vp-chevron) { display: none; }
+    .vp-avatar        { width: 28px; height: 28px; font-size: 11px; }
+
+    /* Subheader — stack vertically */
+    .vp-subheader        { flex-direction: column; align-items: flex-start; gap: 10px; padding: 12px 16px; }
+    .vp-subheader-right  { width: 100%; flex-direction: column; align-items: flex-start; gap: 8px; }
+    .vp-assign-btn       { width: 100%; text-align: center; }
+    .vp-delivery-note    { text-align: left; }
+
+    /* Body — stack sidebar above main */
+    .vp-body          { flex-direction: column; padding: 12px; gap: 12px; overflow: hidden; }
+    .vp-sidebar       { width: 100%; display: flex; flex-direction: row; overflow-x: auto; padding: 8px 12px; gap: 4px; height: auto; }
+    .vp-sidebar-label { display: none; }
+    .vp-sidebar-item  { white-space: nowrap; border-left: none; border-bottom: 2px solid transparent; padding: 8px 14px; border-radius: 20px; }
+    .vp-sidebar-item.active { border-left: none; border-bottom: none; background: #2563eb; color: white; }
+
+    /* Main panel */
+    .vp-main          { padding: 16px; overflow-y: auto; }
+
+    /* Form fields — all full width */
+    .vp-field.half    { width: 100%; }
+    .vp-form-header   { flex-direction: column; gap: 10px; }
+    .vp-edit-btn      { width: 100%; text-align: center; }
+
+    /* Toolbar — stack search below sort */
+    .del-toolbar         { flex-direction: column; align-items: stretch; gap: 8px; padding: 10px 12px; }
+    .del-sort            { width: 100%; }
+    .del-sort select     { flex: 1; }
+    .del-search-wrapper  { width: 100%; }
+    .del-search          { width: 100%; }
+
+    /* Patient page */
+    .pat-content         { padding: 12px; overflow: hidden; }
+    .pat-page-header     { flex-direction: column; align-items: flex-start; gap: 10px; }
+    .pat-add-btn         { width: 100%; }
+    .pat-pagination      { flex-direction: column; align-items: flex-start; gap: 8px; }
+
+    /* Overview cards */
+    .ov-cards            { grid-template-columns: repeat(2, 1fr); }
+    .ov-card-value       { font-size: 22px; }
+
+    /* Rider cards */
+    .rider-card          { flex-wrap: wrap; gap: 12px; }
+}
+
+/* ── Small phone (≤480px) ── */
+@media (max-width: 480px) {
+    /* Show hamburger, hide desktop links */
+    .vp-hamburger        { display: block; }
+    .vp-nav-links        { display: none; }
+    .vp-mobile-menu      { display: flex; }
+    .vp-username         { display: none; }
+
+    .ov-cards            { grid-template-columns: 1fr; }
+    .vp-tabs             { overflow-x: auto; }
+    .vp-tab              { white-space: nowrap; }
 }
