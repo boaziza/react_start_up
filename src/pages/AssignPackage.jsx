@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { BrowserQRCodeReader } from '@zxing/browser'
+import { DecodeHintType } from '@zxing/library'
 import Navbar from '../components/Navbar'
 import QrCode from '../components/icons/qrcode.png'
 import '../styles/app.css'
@@ -9,7 +10,9 @@ function QrScanner({ onScan, onError }) {
     const videoRef = useRef(null)
 
     useEffect(() => {
-        const reader = new BrowserQRCodeReader()
+        const hints = new Map()
+        hints.set(DecodeHintType.TRY_HARDER, true)
+        const reader = new BrowserQRCodeReader(hints)
         let active = true
 
         reader.decodeFromVideoDevice(undefined, videoRef.current, (result, err) => {
